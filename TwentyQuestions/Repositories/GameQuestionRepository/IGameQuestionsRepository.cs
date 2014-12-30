@@ -11,8 +11,9 @@ namespace TwentyQuestions.Repositories
 {
 	public interface IGameQuestionsRepository : IBaseRepository<GameQuestion>
 	{
-		Task<GameQuestionsJSONModel> GetNextQuestionAsync(int idGame);
-		Task<GameQuestionExpectedAnswerJSONModel[]> GetQuestionsAnsweredForGameAsync(int idGame);
-		Task AnswerQuestionAndUpdateInstanceAsync(int idGame, int questionIndex, AnswerType answer);
+		Task<GamePlayViewModel> GetGamePlayVMAsync(string gameAccessId);
+		Task AnswerQuestionAndUpdateInstanceAsync(string gameAccessId, AnswerType answer);
+
+		Task<List<GameQuestion>> GetAnsweredQuestionsAsync(int idGame);
 	}
 }

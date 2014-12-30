@@ -294,8 +294,9 @@
 
 .game_page {
 	font-size: @global_font_size;
+	text-align: center;
 
-	.guessed_object {
+	#entity-name {
 		font-weight: bold;
 		font-size: 20px;
 	}
@@ -326,44 +327,10 @@
 				background-color: #ddddff;
 			}
 
-	#wrapper-response,
-	#selected-top-guess {
-		text-align: center;
-	}
-
-
-	#wrapper-top-guesses {
-		text-align: center;
-		/*a,
-		{
-			width: 200px;
-			display: inline-block;
-			background-color: #dddddd;
-			color: #442918;
-			padding: 5px;
-			text-align: left;
-		}
-
-			a:hover {
-				background-color: #ddddff;
-			}
-
-		.top_guesses_link {
-			background-color: #FAFAFA;
-		}*/
-		.none_of_top_guesses_link {
-			margin-top: 5px;
-		}
-	}
-
-	#feedback_accepted_answer_machine_message {
-		text-align: center;
-	}
 
 
 
 	#divUserInputAnswer {
-		text-align: center;
 
 		a {
 			width: 100px;
@@ -377,7 +344,6 @@
 
 	.play_again {
 		color: #442918;
-		text-align: center;
 
 		a {
 			padding: 4px;

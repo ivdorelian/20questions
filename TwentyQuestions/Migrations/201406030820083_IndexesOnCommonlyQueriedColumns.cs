@@ -24,7 +24,7 @@ namespace TwentyQuestions.Migrations
 			DropIndex("dbo.EntityQuestions", "IDX_EntityQuestions_YesCount");
 			DropIndex("dbo.EntityQuestions", "IDX_EntityQuestions_NoCount");
 			DropIndex("dbo.EntityQuestions", "IDX_EntityQuestions_UnknownCount");
-			DropIndex("dbo.EntityQuestions", "IDX_EntityQuestions_UnknownCount");
+			DropIndex("dbo.Questions", "IDX_Questions_TimesAsked");
 		}
 	}
 }

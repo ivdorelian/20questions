@@ -37,6 +37,8 @@ namespace TwentyQuestions.Models
 		/// TODO: when updating the fitness of a game-entity association, take into account the fitness of the question
 		///       that was asked as well. Note that this will also affect the certainty percentage calculation.
 		/// </summary>
+		/// 
+		[Index]
 		public double Fitness { get; set; }
 	}
 }

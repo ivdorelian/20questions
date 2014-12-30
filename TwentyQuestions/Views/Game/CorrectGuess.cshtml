@@ -1,0 +1,17 @@
+﻿@model TwentyQuestions.ViewModels.Game.GuessViewModel
+
+@{
+	ViewBag.Title = "Open 20 questions";
+}
+
+<div class="game_page">
+	@{ Html.RenderPartial("CorrectGuessPartial/_CorrectGuessControlsPartial", Model.Game); }
+
+	<div id="gridQuestionList">
+		@{ Html.RenderPartial("PlayPartial/_AnsweredQuestionsPartial", Model.AnsweredQuestions); }
+	</div>
+</div>
+
+@section scriptsection {
+	@{ Html.RenderPartial("~/Views/Shared/_GoogleImageSearchPartial.cshtml"); }
+}

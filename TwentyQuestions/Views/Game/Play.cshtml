@@ -1,0 +1,109 @@
+﻿@model TwentyQuestions.ViewModels.Game.GamePlayViewModel
+
+@{
+	ViewBag.Title = "Open 20 questions";
+}
+
+@*@section headsection {
+	<script id="tmplResponse" type="text/x-jquery-tmpl">
+		<p>I thought of:</p>
+		<p><span class="guessed_object">${ObjectName}</span> (${ObjectDescription}) - certainty: <b>${CertaintyPercentage} %</b></p>
+
+		<div class="clear"></div>
+
+		<div id="wrapper-response-entity-picture-progress-bar" class="progress progress-striped active center-block" style="width: 20%;">
+			<div class="progress-bar progress-bar-warning" style="width: 100%"></div>
+		</div>
+
+		<img src="" id="wrapper-response-entity-picture" style="display:none;" />
+
+		<p id="feedback_buttons" style="margin-top:10px;">
+			<button type="button" class="btn btn-success btn-sm" id="btnCorrectAnswer"><span style="width: 90px; display: block;">Correct</span></button>
+			&nbsp;
+			<button type="button" class="btn btn-warning btn-sm" id="btnIncorrectAnswer"><span style="width: 90px; display: block;">Incorrect</span></button>
+		</p>
+	</script>
+
+	<script id="tmplTopGuesses" type="text/x-jquery-tmpl">
+		<a href="javascript:void(0);" class="${Class}" data-id="${ObjectId}" data-name="${Name}" data-description="${Description}" data-rank="${Index}">${Index}${Dot}${Name}</a>
+		<div class="clear"></div>
+	</script>
+}*@
+
+@*@section scriptsection {
+	<script src="http://www.google.com/jsapi?key=AIzaSyA5m1Nc8ws2BbmPRwKu5gFradvD_hgq6G0" type="text/javascript"></script>
+	<script type="text/javascript">
+		google.load('search', '1');
+	</script>
+
+	@Scripts.Render("~/pagescripts/game")
+	<script>
+		$(document).ready(function ()
+		{
+			var page = new GamePage();
+			page.initializeControls();
+		});
+	</script>
+}*@
+
+<div class="game_page">
+	@{ Html.RenderPartial("PlayPartial/_PlayControlsPartial", Model); }
+
+	@*<div id="wrapper-response" class="hide"></div>
+
+	<p id="feedback_accepted_answer_machine_message" class="hide">
+		Ok, glad I got it right!
+	</p>
+
+
+	<div id="wrapper-top-guesses" class="hide" style="margin: 0 auto;width:300px;">
+		<p id="feedback-sorry-message">
+			Is it one of these?
+		</p>
+	</div>
+
+	<div id="selected-top-guess" class="hide">
+		<p>So it was</p>
+
+		<span class="guessed_object"></span> (<span class="guessedTop_desc"></span>)
+
+		<p>That was my <span class="selected_top_guess_rank"></span> guess.</p>
+	</div>
+
+	<div id="divUserInputAnswer" style="display:none;">
+		<p>Ok, tell us who it was then:</p>
+		<input type="text" class="form-control" id="txtObjectName" placeholder="Give a name to your thoughts" value="" style="margin:0 auto; margin-bottom:5px;" />
+
+		<br /><p>Give a short description (example: President of the USA, French politician, Tennis player etc.):</p>
+		<input type="text" class="form-control" id="txtObjectDescription" placeholder="Description" value="" style="margin:0 auto; margin-bottom:5px;" />
+
+		<div class="clear"></div>
+		<button type="button" class="btn btn-success btn-sm" id="btnSubmitAddNew"><span style="width: 90px; display: block; ">Submit</span></button>
+	</div>
+
+
+	<p id="entity_played_info" class="hide" style="text-align:center;"></p>
+
+	<div id="entity_played_info-picture-progress-bar" class="progress progress-striped active center-block" style="width: 20%;display:none;">
+		<div class="progress-bar progress-bar-warning" style="width: 100%"></div>
+	</div>
+
+	<div class="center-block" style="text-align:center;">
+		<img src="" id="entity_played_info-picture" style="display:none;" />
+	</div>
+	
+
+	<div class="play_again hide">
+		@Html.ActionLink("Play again!", "Index", "Game", null, new { Class = "guessed_object" })
+	</div>*@
+
+	<div id="gridQuestionList">
+		@{ Html.RenderPartial("PlayPartial/_AnsweredQuestionsPartial", Model.AnsweredQuestions); }
+	</div>
+
+	<input type="hidden" id="idGame" value="@Model.AccessID" />
+</div>
+
+@section scriptsection {
+	@{ Html.RenderPartial("PlayPartial/_PlayScripts"); }
+}

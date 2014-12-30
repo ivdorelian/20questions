@@ -1,42 +1,76 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Core;
+using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using TwentyQuestions.Constants;
 using TwentyQuestions.Enums;
 using TwentyQuestions.Models;
+using TwentyQuestions.Utils;
 using TwentyQuestions.ViewModels.Game;
 
 namespace TwentyQuestions.Repositories
 {
 	public class GameRepository : BaseRepository<Game>, IGameRepository
 	{
-		public GameRepository(DbContext context) : base(context) { }
+		public GameRepository(DbContext context, UnitOfWork unitOfWork) : base(context, unitOfWork) { }
 
-		public Game StartNewGame()
+
+
+		public async Task<string> StartNewGame()
 		{
+			RandomString randomId = new RandomString();
+			string newGameId = randomId.GetRandomString(TechnicalConstants.GameIdLength);
+
 			Game newGame = new Game
 			{
-				LastActivity = DateTime.Now
+				LastActivity = DateTime.Now,
+				AccessID = newGameId,
+				GameState = GameState.Playing
 			};
 
-			dbSet.Add(newGame);
+			try
+			{
+				this.dbSet.Add(newGame);
 
-			return newGame;
+				await this.dbContext.SaveChangesAsync();
+
+				await dbContext.Database.ExecuteSqlCommandAsync(
+				@"	INSERT INTO GameEntities (
+						Game_IDGame,		Entity_IDEntity,		Fitness)
+					SELECT
+						{0},				[IDEntity],				{1}
+					FROM
+						Entities", newGame.IDGame, 1);
+			}
+			catch (DbUpdateException updateEx)
+			{
+				var inner1 = updateEx.InnerException;
+				if (inner1 != null && 
+					inner1.InnerException != null &&
+					(inner1.InnerException as SqlException).Errors.OfType<SqlError>().Any(se => se.Number == 2601 || se.Number == 2627 /* PK/UKC violation */))
+				{
+					// it's a dupe, handle on controller
+					this.dbSet.Remove(newGame);
+
+					return null;
+				}
+				else
+				{
+					throw;
+				}
+			}
+
+			return newGame.AccessID;
 		}
 
-		public async Task UpdateGameActivity(int idGame)
+		public void UpdateGameActivityNoSave(Game game)
 		{
-			await this.dbContext.Database.ExecuteSqlCommandAsync(
-																	@"
-																		update
-																				Games
-																		set
-																				LastActivity = GETDATE()
-																		where
-																				IDGame = {0}", idGame);
+			game.LastActivity = DateTime.Now;
 		}
 
 		public async Task DeleteOldGames()
@@ -62,74 +96,29 @@ namespace TwentyQuestions.Repositories
 			return maxFitness;
 		}
 
-		public async Task<Game> GetGameResult(int idGame)
+		public async Task ComputeExpectedAnswersAsync(Game game, int idEntity)
 		{
-			await this.UpdateGameActivity(idGame);
-
-			Entity guessedEntity = await this.dbContext.Database.SqlQuery<Entity>(
-																	 @"select top 1
-																				Entity.*
-																	from
-																				Entities as Entity
-																	inner join
-																				GameEntities as Instance on Instance.Entity_IDEntity = Entity.[IDEntity]
-																	where
-																				Instance.Game_IDGame = {0}
-																	order by
-																				Instance.Fitness desc", idGame).FirstOrDefaultAsync();
-
-			int askedQuestions = await this.dbContext.Database.SqlQuery<int>(
-																	@"
-																		select 
-																				count(*) 
-																		from 
-																				GameQuestions 
-																		where 
-																				Game_IDGame = {0}", idGame).FirstAsync();
-
+			// save the expected answers to database
 			await this.dbContext.Database.ExecuteSqlCommandAsync(
-										@"
-											update 
-													Game 
-											set 
-													Game.GuessedObject_IDEntity = {0},
-													Game.CertaintyPercentage =	100.0 * 
-																				(select top 1 Fitness from GameEntities where Game_IDGame = {1} order by Fitness desc) /
-																				({2})
-											from
-													Games as Game
-											where
-													Game.IDGame = {1}", guessedEntity.IDEntity, idGame, GameRepository.MaxFitness(askedQuestions));
-
-			Game gameResult = await this.dbSet.Where(g => g.IDGame == idGame).Include(e => e.GuessedObject).FirstOrDefaultAsync();
-
-			return gameResult;
-		}
-
-		public async Task<GameQuestionExpectedAnswerJSONModel[]> GetExpectedAnswers(int idGame, int idEntity)
-		{
-			// get the asked questions together with their expected answers
-			return await this.dbContext.Set<GameQuestion>()
-									.Where(w => w.Game.IDGame == idGame)
-									.GroupJoin(
-										this.dbContext.Set<EntityQuestion>(),
-										gq => gq.Question.IDQuestion,
-										eq => eq.Question.IDQuestion,
-										(gq, eq) => new
-										{
-											GameQuestion = gq,
-											EntityQuestion = eq.Where(w => w.Entity.IDEntity == idEntity).FirstOrDefault()
-										})
-									.Select(
-										w => new GameQuestionExpectedAnswerJSONModel()
-										{
-											GameQuestion = w.GameQuestion,
-											EntityQuestion = w.EntityQuestion
-										}).ToArrayAsync();
+				@"
+					update
+						gq
+					set
+						gq.ExpectedAnswer = case
+												when eq.YesCount > eq.NoCount and eq.YesCount > eq.UnknownCount then {2}
+												when eq.NoCount > eq.YesCount and eq.NoCount > eq.UnknownCount then {3}
+												else {4}
+											end
+					from
+						GameQuestions as gq
+					inner join
+						EntityQuestions as eq on eq.Entity_IDEntity = {1}
+					where
+						gq.Game_IDGame = {0}", game.IDGame, idEntity, (int)AnswerType.Yes, (int)AnswerType.No, (int)AnswerType.Unknown); 
 
 		}
 
-		private async Task UpdateEntityQuestions(int idGame, int idEntity, int multiplier)
+		private async Task UpdateEntityQuestionsAsync(int idGame, int idEntity, int multiplier)
 		{
 			int askedQuestions = await this.dbContext.Set<GameQuestion>().CountAsync(gq => gq.Game.IDGame == idGame);
 
@@ -197,7 +186,7 @@ namespace TwentyQuestions.Repositories
 										multiplier, askedQuestions, idEntity, idGame, TechnicalConstants.CorrectNoAnswerFitnessUpdateCoefficient);
 		}
 
-		public async Task SetCorrectGuess(int idGame, int idGuessedEntity, int attempt)
+		private async Task SetCorrectGuessAsync(int idGame, int idGuessedEntity, int attempt)
 		{
 			double fitness = await this.dbContext
 										.Set<GameEntity>()
@@ -208,8 +197,6 @@ namespace TwentyQuestions.Repositories
 			int playedRank = fitness == default(double) ? GamePlayConstants.PlayedRankNewEntity : await this.dbContext
 																											.Set<GameEntity>()
 																											.CountAsync(ge => ge.Game.IDGame == idGame && ge.Fitness > fitness) + 1;
-
-			await this.UpdateGameActivity(idGame);
 
 			await this.dbContext.Database.ExecuteSqlCommandAsync(
 									@"
@@ -229,7 +216,7 @@ namespace TwentyQuestions.Repositories
 														Game_IDGame = {0}", idGame);
 
 			// update entity-questions associations positively
-			await UpdateEntityQuestions(idGame, idGuessedEntity, 1);
+			await this.UpdateEntityQuestionsAsync(idGame, idGuessedEntity, 1);
 
 			await this.dbContext.Database.ExecuteSqlCommandAsync(
 									@"
@@ -246,30 +233,81 @@ namespace TwentyQuestions.Repositories
 													[IDEntity] = {1}", attempt, idGuessedEntity);
 		}
 
-		public async Task<Entity[]> GetTopGuesses(int idGame)
+		private async Task SetIncorrectGuessAsync(int idGame, int idGuessedEntity, int attempt)
 		{
-			await this.UpdateGameActivity(idGame);
-
-			return await this.dbContext.Database.SqlQuery<Entity>(
-								@"
-									select
-												Entity.*
-									from
-												Entities as Entity
-									inner join
-												GameEntities as Instance on Instance.Entity_IDEntity = Entity.[IDEntity] and Instance.Game_IDGame = {0}
-									order by
-												Instance.Fitness desc
-									offset 1 rows
-									fetch next " + GamePlayConstants.MaxAlternativeEntities + " rows only", idGame).ToArrayAsync();
+			// update entity-questions associations negatively
+			await this.UpdateEntityQuestionsAsync(idGame, idGuessedEntity, -1);
 		}
 
-		public async Task SetIncorrectGuess(int idGame, int idGuessedEntity, int attempt)
-		{
-			await this.UpdateGameActivity(idGame);
 
-			// update entity-questions associations negatively
-			await UpdateEntityQuestions(idGame, idGuessedEntity, -1);
+		public async Task<GuessViewModel> GetGuessVMAsync(string gameAccessId)
+		{
+			Game game = await this.unitOfWork.GameRepository.GetGameFromAccessIdAsync(gameAccessId);
+
+			this.unitOfWork.GameRepository.UpdateGameActivityNoSave(game);
+
+			GuessViewModel firstGuessVM = new GuessViewModel();
+			
+			firstGuessVM.Game = game;
+			firstGuessVM.AnsweredQuestions = await this.unitOfWork.GameQuestionsRepository.GetAnsweredQuestionsAsync(game.IDGame);
+
+			await this.dbContext.SaveChangesAsync();
+
+			return firstGuessVM;
+		}
+
+		public async Task JudgeFirstGuessAsync(string gameAccessId, bool correctGuess)
+		{
+			Game game = await this.GetGameFromAccessIdAsync(gameAccessId);
+
+			if (game.GameState != GameState.LastQuestionAnswered)
+			{
+				return;
+			}
+
+			this.UpdateGameActivityNoSave(game);
+
+			if (correctGuess)
+			{
+				await this.SetCorrectGuessAsync(game.IDGame, game.GuessedObject.IDEntity, 1);
+				await this.ComputeExpectedAnswersAsync(game, game.GuessedObject.IDEntity);
+				game.GameState = GameState.FirstGuessMarkedCorrect;
+			}
+			else
+			{
+				await this.SetIncorrectGuessAsync(game.IDGame, game.GuessedObject.IDEntity, 1);
+				game.GameState = GameState.FirstGuessMarkedIncorrect;
+			}
+
+			await this.dbContext.SaveChangesAsync();
+		}
+
+		public async Task JudgeTopGuessAsync(string gameAccessId, int indexGuess)
+		{
+			Game game = await this.GetGameFromAccessIdAsync(gameAccessId);
+
+			this.UpdateGameActivityNoSave(game);
+
+			if (indexGuess < 2)
+			{
+				game.GameState = GameState.MustEnterWhoItWas;
+				await this.dbContext.SaveChangesAsync();
+				
+				return;
+			}
+
+			if (game.GameState != GameState.FirstGuessMarkedIncorrect || indexGuess > 2 + GamePlayConstants.MaxAlternativeEntities)
+			{
+				return;
+			}
+
+			GameEntity selectedEntity = await this.unitOfWork.GameEntityRepository.GetTopGameEntityAsync(game, indexGuess);
+			await this.SetCorrectGuessAsync(game.IDGame, selectedEntity.Entity.IDEntity, 2);
+			await this.ComputeExpectedAnswersAsync(game, selectedEntity.Entity.IDEntity);
+
+			game.GameState = GameState.SelectedFromTopGuessesList;
+
+			await this.dbContext.SaveChangesAsync();
 		}
 
 		public async Task<Game[]> GetRecentGames()
@@ -281,6 +319,25 @@ namespace TwentyQuestions.Repositories
 								.Include(g => g.PlayedObject)
 								.Take(TechnicalConstants.RecentGamesListLength)
 								.ToArrayAsync();
+		}
+
+		public async Task<Game> GetGameFromAccessIdAsync(string gameAccessId)
+		{
+			return await this.dbSet
+								.Where(g => g.AccessID == gameAccessId)
+								.Include(g => g.GuessedObject)
+								.Include(g => g.PlayedObject)
+								.FirstOrDefaultAsync();
+		}
+		
+		public async Task<GameState> GetGameStateAsync(int idGame)
+		{
+			return await this.dbSet.Where(g => g.IDGame == idGame).Select(g => g.GameState).FirstOrDefaultAsync();
+		}
+
+		public async Task<GameState> GetGameStateAsync(string gameAccessId)
+		{
+			return await this.dbSet.Where(g => g.AccessID == gameAccessId).Select(g => g.GameState).FirstOrDefaultAsync();
 		}
 	}
 }

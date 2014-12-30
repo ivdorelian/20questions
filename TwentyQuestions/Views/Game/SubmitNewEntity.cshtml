@@ -1,0 +1,13 @@
+﻿@model TwentyQuestions.ViewModels.Game.SubmitNewEntityViewModel
+
+@{
+	ViewBag.Title = "Open 20 questions";
+}
+
+<div class="game_page">
+	@{ Html.RenderPartial("SubmitNewEntityPartial/_SubmitNewEntityControlsPartial", Model); }
+</div>
+
+@section scriptsection {
+	@{ Html.RenderPartial("~/Views/Shared/_GoogleImageSearchPartial.cshtml"); }
+}

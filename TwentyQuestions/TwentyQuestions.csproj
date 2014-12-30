@@ -46,6 +46,14 @@
     <Reference Include="dotless.Core">
       <HintPath>..\packages\dotless.1.4.0.0\lib\dotless.Core.dll</HintPath>
     </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -130,12 +138,6 @@
     <Reference Include="System.Web.Http.WebHost">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.5.0.0\lib\net45\System.Web.Http.WebHost.dll</HintPath>
     </Reference>
-    <Reference Include="EntityFramework">
-      <HintPath>..\packages\EntityFramework.6.0.0\lib\net45\EntityFramework.dll</HintPath>
-    </Reference>
-    <Reference Include="EntityFramework.SqlServer">
-      <HintPath>..\packages\EntityFramework.6.0.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.AspNet.Identity.Core">
       <HintPath>..\packages\Microsoft.AspNet.Identity.Core.1.0.0\lib\net45\Microsoft.AspNet.Identity.Core.dll</HintPath>
     </Reference>
@@ -206,12 +208,14 @@
     <Compile Include="Controllers\QuestionsController.cs" />
     <Compile Include="Enums\AjaxActionResultType.cs" />
     <Compile Include="Enums\AnswerType.cs" />
+    <Compile Include="Enums\GameState.cs" />
     <Compile Include="Enums\PageType.cs" />
     <Compile Include="Enums\StatInterpretationType.cs" />
     <Compile Include="Enums\StatType.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\GeneralHelpers.cs" />
     <Compile Include="Migrations\201404051152579_InitialDatabaseStructure.cs" />
     <Compile Include="Migrations\201404051152579_InitialDatabaseStructure.Designer.cs">
       <DependentUpon>201404051152579_InitialDatabaseStructure.cs</DependentUpon>
@@ -280,9 +284,34 @@
     <Compile Include="Migrations\201406031627450_EntityQuestionAssociationsShouldBeLockable.Designer.cs">
       <DependentUpon>201406031627450_EntityQuestionAssociationsShouldBeLockable.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201407040844406_StringIDForGames.cs" />
+    <Compile Include="Migrations\201407040844406_StringIDForGames.Designer.cs">
+      <DependentUpon>201407040844406_StringIDForGames.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201407040850114_RemoveCustomIndexes.cs" />
+    <Compile Include="Migrations\201407040850114_RemoveCustomIndexes.Designer.cs">
+      <DependentUpon>201407040850114_RemoveCustomIndexes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201407040854413_IndexesFromAttributes.cs" />
+    <Compile Include="Migrations\201407040854413_IndexesFromAttributes.Designer.cs">
+      <DependentUpon>201407040854413_IndexesFromAttributes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201407041243060_StoreExpectedAnswersInTheDatabase.cs" />
+    <Compile Include="Migrations\201407041243060_StoreExpectedAnswersInTheDatabase.Designer.cs">
+      <DependentUpon>201407041243060_StoreExpectedAnswersInTheDatabase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201407061125066_SupportForGameStates.cs" />
+    <Compile Include="Migrations\201407061125066_SupportForGameStates.Designer.cs">
+      <DependentUpon>201407061125066_SupportForGameStates.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201412301525065_EntityValidations.cs" />
+    <Compile Include="Migrations\201412301525065_EntityValidations.Designer.cs">
+      <DependentUpon>201412301525065_EntityValidations.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\ApplicationDbContext.cs" />
+    <Compile Include="Models\QuestionsAssociationRule.cs" />
     <Compile Include="Models\Entity.cs" />
     <Compile Include="Models\EntityQuestion.cs" />
     <Compile Include="Models\Game.cs" />
@@ -312,11 +341,13 @@
     <Compile Include="Startup.cs" />
     <Compile Include="Utils\DateTimeExtensions.cs" />
     <Compile Include="Utils\NumericUtils.cs" />
+    <Compile Include="Utils\RandomString.cs" />
     <Compile Include="ViewModels\AjaxActionResult.cs" />
     <Compile Include="ViewModels\EntityQuestions\EntityQuestionsViewModel.cs" />
-    <Compile Include="ViewModels\Game\JSONModels\GameQuestionExpectedAnswerJSONModel.cs" />
-    <Compile Include="ViewModels\Game\JSONModels\GameQuestionsJSONModel.cs" />
-    <Compile Include="ViewModels\Game\GameViewModel.cs" />
+    <Compile Include="ViewModels\Game\SubmitNewEntityViewModel.cs" />
+    <Compile Include="ViewModels\Game\TopGuessesViewModel.cs" />
+    <Compile Include="ViewModels\Game\GuessViewModel.cs" />
+    <Compile Include="ViewModels\Game\GamePlayViewModel.cs" />
     <Compile Include="ViewModels\Home\HomeViewModel.cs" />
     <Compile Include="ViewModels\JSONReply.cs" />
     <Compile Include="ViewModels\LayoutViewModel.cs" />
@@ -346,6 +377,7 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Content\less\Style.less" />
+    <None Include="Properties\PublishProfiles\twentyquestions.open-cs.net - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\twentyquestions.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
@@ -404,10 +436,10 @@
     <Content Include="Views\Account\Manage.cshtml" />
     <Content Include="Views\Account\Register.cshtml" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
-    <Content Include="Views\Game\Index.cshtml" />
+    <Content Include="Views\Game\Play.cshtml" />
     <Content Include="Views\Entities\Index.cshtml" />
     <Content Include="Views\Questions\Index.cshtml" />
-    <Content Include="Views\Game\Partial\_AnsweredQuestionTemplate.cshtml" />
+    <Content Include="Views\Game\PlayPartial\_AnsweredQuestionsPartial.cshtml" />
     <Content Include="Views\Questions\Partial\_QuestionListTemplate.cshtml" />
     <Content Include="Views\QuestionEntities\Index.cshtml" />
     <Content Include="Views\QuestionEntities\Partial\_QuestionEntitiesListTemplate.cshtml" />
@@ -415,8 +447,21 @@
     <Content Include="Views\EntityQuestions\Index.cshtml" />
     <Content Include="Views\EntityQuestions\Partial\_EntityQuestionsListTemplate.cshtml" />
     <Content Include="Views\Shared\_Pager.cshtml" />
-    <Content Include="Views\Game\Partial\_TopGuessesListTemplate.cshtml" />
+    <Content Include="Views\Game\PlayPartial\_TopGuessesListTemplate.cshtml" />
     <Content Include="Views\Home\Partial\_RecentGamesListTemplate.cshtml" />
+    <Content Include="Views\Game\PlayPartial\_PlayScripts.cshtml" />
+    <Content Include="Views\Game\PlayPartial\_PlayControlsPartial.cshtml" />
+    <Content Include="Views\Game\FirstGuessFeedback.cshtml" />
+    <Content Include="Views\Game\FirstGuessFeedbackPartial\_FirstGuessControlsPartial.cshtml" />
+    <Content Include="Views\Game\FirstGuessFeedbackPartial\_FirstGuessFeedbackScripts.cshtml" />
+    <Content Include="Views\Game\CorrectGuess.cshtml" />
+    <Content Include="Views\Game\CorrectGuessPartial\_CorrectGuessControlsPartial.cshtml" />
+    <Content Include="Views\Shared\_GoogleImageSearchPartial.cshtml" />
+    <Content Include="Views\Game\TopGuesses.cshtml" />
+    <Content Include="Views\Game\TopGuessesPartial\_TopGuessesControlsPartial.cshtml" />
+    <Content Include="Views\Game\TopGuessesPartial\_TopGuessesScripts.cshtml" />
+    <Content Include="Views\Game\SubmitNewEntity.cshtml" />
+    <Content Include="Views\Game\SubmitNewEntityPartial\_SubmitNewEntityControlsPartial.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -425,7 +470,9 @@
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
-    <Content Include="packages.config" />
+    <Content Include="packages.config">
+      <SubType>Designer</SubType>
+    </Content>
     <None Include="Project_Readme.html" />
   </ItemGroup>
   <ItemGroup>
@@ -487,6 +534,24 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201406031627450_EntityQuestionAssociationsShouldBeLockable.resx">
       <DependentUpon>201406031627450_EntityQuestionAssociationsShouldBeLockable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201407040844406_StringIDForGames.resx">
+      <DependentUpon>201407040844406_StringIDForGames.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201407040850114_RemoveCustomIndexes.resx">
+      <DependentUpon>201407040850114_RemoveCustomIndexes.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201407040854413_IndexesFromAttributes.resx">
+      <DependentUpon>201407040854413_IndexesFromAttributes.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201407041243060_StoreExpectedAnswersInTheDatabase.resx">
+      <DependentUpon>201407041243060_StoreExpectedAnswersInTheDatabase.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201407061125066_SupportForGameStates.resx">
+      <DependentUpon>201407061125066_SupportForGameStates.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201412301525065_EntityValidations.resx">
+      <DependentUpon>201412301525065_EntityValidations.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

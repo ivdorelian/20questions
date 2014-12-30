@@ -1,0 +1,18 @@
+﻿@model TwentyQuestions.ViewModels.Game.GamePlayViewModel
+
+<p class="current_question_number">Question <span id="current_questions_number">@(Model.AnsweredQuestions.Count + 1)</span></p>
+<p class="current_question_content">@Model.CurrentQuestion.QuestionBody</p>
+
+<div style="height:48px;padding-top:5px;">
+	<div id="progress_bar" class="progress progress-striped active center-block" style="width: 20%; display:none;">
+		<div class="progress-bar progress-bar-success" style="width: 100%"></div>
+	</div>
+</div>
+
+<div id="wrapper-possible-answers">
+	<button type="button" class="btn btn-success btn-sm answer-btn" data-answertype="1"><span style="width: 90px; display: block;">Yes</span></button>
+	<button type="button" class="btn btn-success btn-sm answer-btn" data-answertype="2"><span style="width: 90px; display: block;">No</span></button>
+	<button type="button" class="btn btn-success btn-sm answer-btn" data-answertype="3"><span style="width: 90px; display: block;">Don't know</span></button>
+	<button type="button" class="btn btn-success btn-sm answer-btn" data-answertype="4"><span style="width: 90px; display: block;">Probably yes</span></button>
+	<button type="button" class="btn btn-success btn-sm answer-btn" data-answertype="5"><span style="width: 90px; display: block;">Probably no</span></button>
+</div>

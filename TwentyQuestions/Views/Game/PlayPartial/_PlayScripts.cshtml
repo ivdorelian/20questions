@@ -1,0 +1,64 @@
+﻿<script>
+	var canAnswerQuestions = true;
+	var isLastQuestion = false;
+
+	$(".answer-btn").click(function () {
+		answerQuestion($(this).data("answertype"));
+	});
+
+	var answerQuestion = function (answer) {
+		/// <summary>Answers the current question of the game.</summary>
+		/// <param name="answer" type="int">The user given answer.</param>
+		/// <returns type="bool">True if the question has been answered successfully, false if an error occurred</returns>
+
+		if (canAnswerQuestions) {
+
+			$("#progress_bar").show();
+			canAnswerQuestions = false; // disables the possibility of answering questions.
+
+			$.post(
+				'/Game/AnswerQuestion',
+				{
+					gameAccessId: $("#idGame").val(),
+					answer: answer
+				},
+				function (data) {
+					if (data) {
+						if (isLastQuestion) {
+							location.reload(true);
+						} else {
+							getNextQuestion();
+						}
+					}
+				});
+		}
+	};
+
+	var getNextQuestion = function () {
+		/// <summary>Gets the next question of the current game.</summary>
+		/// <returns type="json">The JSON object representing the next question of the game.</returns>
+
+		$.post(
+			'/Game/NextQuestion',
+			{
+				gameAccessId: $("#idGame").val()
+			},
+			function (data) {
+				if (data) {
+					data = data.Data;
+
+					isLastQuestion = data[3];
+
+					$("#gridQuestionList").html(data[0]);
+					$(".current_question_content").text(data[1]);
+					$("#current_questions_number").text(data[2]);
+
+					canAnswerQuestions = true; // enables the possibility of answering questions.
+
+					$("#progress_bar").hide();
+				}
+			});
+	};
+
+
+</script>

@@ -1,0 +1,32 @@
+﻿@model TwentyQuestions.ViewModels.Game.SubmitNewEntityViewModel
+
+<div id="divUserInputAnswer">
+	<p>Ok, tell me who it was then:</p>
+
+	@using (Html.BeginForm("Play", "Game", null, FormMethod.Post))
+	{
+		@Html.HiddenFor(m => m.AccessID);
+
+		@Html.ValidationMessageFor(m => m.SubmittedEntity.Name)
+		@Html.TextBoxFor(
+			m => m.SubmittedEntity.Name,
+			new
+			{
+				Class = "form-control",
+				style = "margin: 0 auto; margin-bottom: 10px",
+				placeholder = "Give a name to your thoughts"
+			})
+
+		@Html.ValidationMessageFor(m => m.SubmittedEntity.Description)
+		@Html.TextBoxFor(
+			m => m.SubmittedEntity.Description,
+			new
+			{
+				Class = "form-control",
+				style = "margin: 0 auto; margin-bottom: 10px",
+				placeholder = "And a short description"
+			})
+
+		<input type="submit" class="btn btn-success btn-sm" value="Submit" />
+	}
+</div>

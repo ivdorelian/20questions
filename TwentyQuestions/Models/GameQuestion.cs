@@ -42,5 +42,21 @@ namespace TwentyQuestions.Models
 		///       Right now, no answer = 0, which is defined in the enum as undefined.
 		/// </summary>
 		public AnswerType GivenAnswer { get; set; }
+
+		/// <summary>
+		/// The expected answer for this question, in relation to the entity that was played.
+		/// </summary>
+		public AnswerType ExpectedAnswer { get; set; }
+
+		public bool IsLastQuestion { get; set; }
+
+		[NotMapped]
+		public string ExpectedAnswerDisplay
+		{
+			get
+			{
+				return this.ExpectedAnswer == AnswerType.Undefined ? string.Empty : this.ExpectedAnswer.ToString();
+			}
+		}
 	}
 }

@@ -1,0 +1,20 @@
+﻿@model TwentyQuestions.Models.Game
+
+<div id="wrapper-response">
+	<h2>I thought of:</h2>
+	<p><span id="entity-name">@Model.GuessedObject.Name</span> (@Model.GuessedObject.Description) - certainty: <b>@Math.Round(Model.CertaintyPercentage, 2) %</b></p>
+
+	<div class="clear"></div>
+
+	<div id="wrapper-response-entity-picture-progress-bar" class="progress progress-striped active center-block" style="width: 20%;">
+		<div class="progress-bar progress-bar-warning" style="width: 100%"></div>
+	</div>
+
+	<img src="" id="wrapper-response-entity-picture" style="display:none;" />
+
+	<p id="feedback_buttons" style="margin-top:10px;">
+		<button type="button" class="btn btn-success btn-sm judge-btn" data-correctguess="true"><span style="width: 90px; display: block;">Correct</span></button>
+		&nbsp;
+		<button type="button" class="btn btn-warning btn-sm judge-btn" data-correctguess="false"><span style="width: 90px; display: block;">Incorrect</span></button>
+	</p>
+</div>

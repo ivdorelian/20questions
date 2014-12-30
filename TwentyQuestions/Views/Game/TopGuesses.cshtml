@@ -1,0 +1,15 @@
+﻿@model TwentyQuestions.ViewModels.Game.TopGuessesViewModel
+
+@{
+	ViewBag.Title = "Open 20 questions";
+}
+
+<div class="game_page">
+	@{ Html.RenderPartial("TopGuessesPartial/_TopGuessesControlsPartial", Model.TopGuesses); }
+
+	<input type="hidden" id="idGame" value="@Model.AccessID" />
+</div>
+
+@section scriptsection {
+	@{ Html.RenderPartial("TopGuessesPartial/_TopGuessesScripts"); }
+}

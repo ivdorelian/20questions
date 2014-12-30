@@ -1,0 +1,17 @@
+﻿@{ Html.RenderPartial("~/Views/Shared/_GoogleImageSearchPartial.cshtml"); }
+
+<script>
+	$(".judge-btn").click(function () {
+		$.post(
+			"/Game/JudgeFirstGuess",
+			{
+				gameAccessId: $("#idGame").val(),
+				correctGuess: $(this).data("correctguess")
+			},
+			function (data) {
+				location.reload(true);
+			}
+		);
+	});
+
+</script>

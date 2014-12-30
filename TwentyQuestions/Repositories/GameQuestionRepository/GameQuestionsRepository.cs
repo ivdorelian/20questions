@@ -14,7 +14,7 @@ namespace TwentyQuestions.Repositories
 {
 	public class GameQuestionsRepository : BaseRepository<GameQuestion>, IGameQuestionsRepository
 	{
-		public GameQuestionsRepository(DbContext context) : base(context) { }
+		public GameQuestionsRepository(DbContext context, UnitOfWork unitOfWork) : base(context, unitOfWork) { }
 
 		Random r = new Random();
 
@@ -55,35 +55,19 @@ namespace TwentyQuestions.Repositories
 			return true;
 		}
 
-		private async Task AnswerQuestionAsync(int idGame, int questionIndex, AnswerType answer)
+		private async Task AnswerQuestionAsync(Game game, int questionIndex, AnswerType answer)
 		{
-			GameRepository gameRepo = new GameRepository(this.dbContext);
-			await gameRepo.UpdateGameActivity(idGame);
+			this.unitOfWork.GameRepository.UpdateGameActivityNoSave(game);
 
-			GameQuestion gameQuestion = await dbSet.Where(g => g.Game.IDGame == idGame && g.QuestionIndex == questionIndex)
+			GameQuestion gameQuestion = await this.dbSet.Where(g => g.Game.IDGame == game.IDGame && g.QuestionIndex == questionIndex)
 													.FirstOrDefaultAsync();
 
 			if (gameQuestion != null)
 			{
 				gameQuestion.GivenAnswer = answer;
-
-				this.Update(gameQuestion);
-
-				await this.dbContext.SaveChangesAsync();
 			}
-		}
-		public async Task<GameQuestionExpectedAnswerJSONModel[]> GetQuestionsAnsweredForGameAsync(int idGame)
-		{
-			return await dbSet.Where(g => g.Game.IDGame == idGame && g.GivenAnswer != AnswerType.Undefined)
-								.OrderBy(gq => gq.QuestionIndex)
-								.Select
-								(
-									t => new GameQuestionExpectedAnswerJSONModel
-									{
-										GameQuestion = t
-									}
-								)
-								.ToArrayAsync();
+
+			await this.dbContext.SaveChangesAsync();
 		}
 
 		private async Task<Question> GetShortcutQuestion(int idTopEntity, int idGame)
@@ -314,104 +298,145 @@ namespace TwentyQuestions.Repositories
 			return potentialNext;
 		}
 
-		public async Task<GameQuestionsJSONModel> GetNextQuestionAsync(int idGame)
+		public async Task<List<GameQuestion>> GetAnsweredQuestionsAsync(int idGame)
 		{
-			GameQuestionsJSONModel ret = new GameQuestionsJSONModel();
-
-			int questionIndex = await dbSet.Where(g => g.Game.IDGame == idGame).Select(g => g.QuestionIndex).DefaultIfEmpty(0).MaxAsync() + 1;
-
-			Entity topEntity = await this.FulfillsShortcutConditions(idGame, questionIndex - 1);
-
-			ret.IsLastQuestion = (topEntity != null && (await this.CanEarlyGuess(idGame)));
-
-			if (topEntity != null)
-			{
-				ret.CurrentQuestion = await this.GetShortcutQuestion(topEntity.IDEntity, idGame);
-			}
-			else
-			{
-				Question[] potentialNext = new Question[TechnicalConstants.PickAmongstNumber];
-
-				int topCandidatesCount = await this.dbContext.Database.SqlQuery<int>(
-												@"
-													select 
-														count(*) 
-													from 
-														GameEntities 
-													where 
-														Game_IDGame = {0} and
-														Fitness = 
-														(
-															select 
-																max(Fitness) 
-															from
-																GameEntities
-															where 
-																Game_IDGame = {0}
-														)", idGame).FirstOrDefaultAsync();
-					
-				if (topCandidatesCount > 1)
-				{
-					potentialNext = await GetBinarySplitQuestion(idGame, topCandidatesCount);
-				}
-				else
-				{
-					potentialNext = await GetTopEnforcementQuestion(idGame);
-				}
-
-
-				if (potentialNext == null || potentialNext.Length == 0)
-				{
-					// TODO: pick a random question or something
-					ret.CurrentQuestion = null;
-				}
-				else
-				{
-					ret.CurrentQuestion = potentialNext[r.Next(potentialNext.Length)];
-				}
-			}
-
-			// update asked stats for current question
-			await this.dbContext.Database.ExecuteSqlCommandAsync(
-												@"
-													update 
-															Questions 
-													set
-															FirstAsked =	case when FirstAsked is null
-																				then GETDATE()
-																				else FirstAsked
-																			end,
-
-															LastAsked = GETDATE(),
-															TimesAsked = TimesAsked + 1
-													where
-															IDQuestion = {0}", ret.CurrentQuestion.IDQuestion);
-
-			ret.IsLastQuestion |= questionIndex == GamePlayConstants.MaxQuestionsUntilFirstGuess;
-
-			ret.CurrentQuestionIndex = questionIndex;
-
-			await this.dbContext.Database.ExecuteSqlCommandAsync(
-												@"insert into GameQuestions (
-															QuestionIndex,	GivenAnswer,	Game_IDGame,	Question_IDQuestion)
-													values(
-															{0},			{1},			{2},			{3})",
-															questionIndex, (int)AnswerType.Undefined, idGame, ret.CurrentQuestion.IDQuestion);
-
-			return ret;
+			return await this.dbSet
+								.Where(gq => gq.Game.IDGame == idGame && gq.GivenAnswer != AnswerType.Undefined)
+								.Include(gq => gq.Question)
+								.OrderBy(gq => gq.QuestionIndex)
+								.ToListAsync();
 		}
 
-		public async Task AnswerQuestionAndUpdateInstanceAsync(int idGame, int questionIndex, AnswerType answer)
+		public async Task<GamePlayViewModel> GetGamePlayVMAsync(string gameAccessId)
 		{
-			
-			await this.AnswerQuestionAsync(idGame, questionIndex, answer);
+			Game game = await this.unitOfWork.GameRepository.GetGameFromAccessIdAsync(gameAccessId);
 
-			if (answer == AnswerType.Unknown) // don't knows should not affect rankings
+			GameQuestion lastAskedQuestion = await this.dbSet
+														.Where(g => g.Game.IDGame == game.IDGame)
+														.Where(g => g.QuestionIndex == this.dbSet.Where(t => t.Game.IDGame == game.IDGame).Max(t => t.QuestionIndex))
+														.Include(g => g.Question)
+														.FirstOrDefaultAsync();
+
+			GamePlayViewModel gamePlayVM = new GamePlayViewModel();
+			gamePlayVM.AccessID = gameAccessId;
+			gamePlayVM.AnsweredQuestions = await this.GetAnsweredQuestionsAsync(game.IDGame);
+			if (gamePlayVM.AnsweredQuestions == null)
+			{
+				gamePlayVM.AnsweredQuestions = new List<GameQuestion>();
+			}
+
+			if (lastAskedQuestion != null && lastAskedQuestion.GivenAnswer == AnswerType.Undefined)
+			{
+				gamePlayVM.CurrentQuestion = lastAskedQuestion.Question;
+				return gamePlayVM;
+			}
+
+			if ((lastAskedQuestion != null && lastAskedQuestion.QuestionIndex < GamePlayConstants.MaxQuestionsUntilFirstGuess && !lastAskedQuestion.IsLastQuestion) || 
+				 lastAskedQuestion == null)
+			{
+				Entity topEntity = await this.FulfillsShortcutConditions(game.IDGame, gamePlayVM.AnsweredQuestions.Count);
+
+				gamePlayVM.IsLastQuestion = (topEntity != null && (await this.CanEarlyGuess(game.IDGame)));
+
+				if (topEntity != null)
+				{
+					gamePlayVM.CurrentQuestion = await this.GetShortcutQuestion(topEntity.IDEntity, game.IDGame);
+				}
+				else
+				{
+					Question[] potentialNext = new Question[TechnicalConstants.PickAmongstNumber];
+
+					int topCandidatesCount = await this.dbContext.Database.SqlQuery<int>(
+													@"
+												select 
+													count(*) 
+												from 
+													GameEntities 
+												where 
+													Game_IDGame = {0} and
+													Fitness = 
+													(
+														select 
+															max(Fitness) 
+														from
+															GameEntities
+														where 
+															Game_IDGame = {0}
+													)", game.IDGame).FirstOrDefaultAsync();
+
+					if (topCandidatesCount > 1)
+					{
+						potentialNext = await GetBinarySplitQuestion(game.IDGame, topCandidatesCount);
+					}
+					else
+					{
+						potentialNext = await GetTopEnforcementQuestion(game.IDGame);
+					}
+
+
+					if (potentialNext == null || potentialNext.Length == 0)
+					{
+						// TODO: pick a random question or something
+						gamePlayVM.CurrentQuestion = null;
+					}
+					else
+					{
+						gamePlayVM.CurrentQuestion = potentialNext[r.Next(potentialNext.Length)];
+					}
+				}
+
+				// update asked stats for current question
+				await this.dbContext.Database.ExecuteSqlCommandAsync(
+													@"
+												update 
+														Questions 
+												set
+														FirstAsked =	case when FirstAsked is null
+																			then GETDATE()
+																			else FirstAsked
+																		end,
+
+														LastAsked = GETDATE(),
+														TimesAsked = TimesAsked + 1
+												where
+														IDQuestion = {0}", gamePlayVM.CurrentQuestion.IDQuestion);
+
+				gamePlayVM.IsLastQuestion |= gamePlayVM.AnsweredQuestions.Count + 1 == GamePlayConstants.MaxQuestionsUntilFirstGuess;
+					
+				await this.dbContext.Database.ExecuteSqlCommandAsync(
+								@"	insert into GameQuestions (
+										QuestionIndex,	GivenAnswer,	Game_IDGame,	Question_IDQuestion,	IsLastQuestion)
+									values (
+										{0},			{1},			{2},			{3},					{4})",
+										gamePlayVM.AnsweredQuestions.Count + 1, (int)AnswerType.Undefined, game.IDGame, gamePlayVM.CurrentQuestion.IDQuestion, gamePlayVM.IsLastQuestion);
+
+				return gamePlayVM;
+			}
+			
+			// If we get here, we tried to answer a non-existing question or one that was already answered.
+			// This should never happen through the interface, so the user must be trying to cheat. Therefore,
+			// we can just return null and let them get errors.
+
+			return null;
+		}
+
+		public async Task AnswerQuestionAndUpdateInstanceAsync(string gameAccessId, AnswerType answer)
+		{
+			Game game = await this.dbContext.Set<Game>().FirstOrDefaultAsync(t => t.AccessID == gameAccessId);
+
+			if (game.GameState != GameState.Playing)
 			{
 				return;
 			}
 
-			double updateValue = TechnicalConstants.InstanceFitnessBaseUpdateValue + ((questionIndex - 1) / TechnicalConstants.InstanceFitnessUpdateWindow) * TechnicalConstants.InstanceFitnessStep;
+			GameQuestion answeredQuestion = await this.dbSet
+											.Where(t => t.Game.IDGame == game.IDGame)
+											.Where(t => t.GivenAnswer == AnswerType.Undefined)
+											.FirstOrDefaultAsync();
+
+			await this.AnswerQuestionAsync(game, answeredQuestion.QuestionIndex, answer);
+
+			double updateValue = TechnicalConstants.InstanceFitnessBaseUpdateValue + ((answeredQuestion.QuestionIndex - 1) / TechnicalConstants.InstanceFitnessUpdateWindow) * TechnicalConstants.InstanceFitnessStep;
 			if (answer == AnswerType.ProbablyYes || answer == AnswerType.ProbablyNo)
 			{
 				updateValue /= 2.0;
@@ -425,46 +450,59 @@ namespace TwentyQuestions.Repositories
 					answer = AnswerType.No;
 				}
 			}
-			
-			await this.dbContext.Database.ExecuteSqlCommandAsync(
-								@"
-									update
-										GameInstance
-									set
-										GameInstance.Fitness = GameInstance.Fitness + {2}
-									from
-										GameEntities as GameInstance
-									inner join
-										EntityQuestions as EntityQuestion on EntityQuestion.Entity_IDEntity = GameInstance.Entity_IDEntity
-									where
-										GameInstance.Game_IDGame = {0} and
-										EntityQuestion.Question_IDQuestion = (	select
-																					Question_IDQuestion
-																				from
-																					GameQuestions
-																				where
-																					Game_IDGame = {0} and
-																					QuestionIndex = {1}
-																			) and
-										EntityQuestion." + answer.ToString() + @"Count =	(select 
-																			case
-																				when	YesCount > [NoCount] and 
-																						YesCount > UnknownCount
-																				then YesCount
+
+			if (answer != AnswerType.Unknown) // don't knows should not affect rankings
+			{
+				await this.dbContext.Database.ExecuteSqlCommandAsync(
+									@"
+										update
+											GameInstance
+										set
+											GameInstance.Fitness = GameInstance.Fitness + {2}
+										from
+											GameEntities as GameInstance
+										inner join
+											EntityQuestions as EntityQuestion on EntityQuestion.Entity_IDEntity = GameInstance.Entity_IDEntity
+										where
+											GameInstance.Game_IDGame = {0} and
+											EntityQuestion.Question_IDQuestion = (	select
+																						Question_IDQuestion
+																					from
+																						GameQuestions
+																					where
+																						Game_IDGame = {0} and
+																						QuestionIndex = {1}
+																				) and
+											EntityQuestion." + answer.ToString() + @"Count =	(select 
+																				case
+																					when	YesCount > [NoCount] and 
+																							YesCount > UnknownCount
+																					then YesCount
 																				
-																				when	[NoCount] > YesCount and 
-																						[NoCount] > UnknownCount
-																				then [NoCount]
+																					when	[NoCount] > YesCount and 
+																							[NoCount] > UnknownCount
+																					then [NoCount]
 																				
-																				when	UnknownCount > YesCount and 
-																						UnknownCount > [NoCount]
-																				then UnknownCount
-																			end
-																	from
-																			EntityQuestions
-																	where
-																			IDEntityQuestion = EntityQuestion.IDEntityQuestion)
-								", idGame, questionIndex, updateValue);
+																					when	UnknownCount > YesCount and 
+																							UnknownCount > [NoCount]
+																					then UnknownCount
+																				end
+																		from
+																				EntityQuestions
+																		where
+																				IDEntityQuestion = EntityQuestion.IDEntityQuestion)
+									", game.IDGame, answeredQuestion.QuestionIndex, updateValue);
+			}
+
+			if (answeredQuestion.IsLastQuestion)
+			{
+				game.GameState = GameState.LastQuestionAnswered;
+				GameEntity topGameEntity = await this.unitOfWork.GameEntityRepository.GetTopGameEntityAsync(game);
+				game.GuessedObject = topGameEntity.Entity;
+				game.CertaintyPercentage = 100.0 * topGameEntity.Fitness / GameRepository.MaxFitness(answeredQuestion.QuestionIndex);
+
+				await this.dbContext.SaveChangesAsync();
+			}
 		}
 	}
 }

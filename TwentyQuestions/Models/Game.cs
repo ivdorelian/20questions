@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Web;
+using TwentyQuestions.Enums;
 
 namespace TwentyQuestions.Models
 {
@@ -17,10 +19,16 @@ namespace TwentyQuestions.Models
 		[Key]
 		public int IDGame { get; set; }
 
+		[MaxLength(10)]
+		[Required]
+		[Index(IsUnique = true)]
+		public string AccessID { get; set; }
+
 		/// <summary>
 		/// The last activity of the current game.
 		/// Games with no activity for a while will be deleted.
 		/// </summary>
+		[Index]
 		public DateTime LastActivity { get; set; }
 
 		/// <summary>
@@ -49,5 +57,7 @@ namespace TwentyQuestions.Models
 		/// The played object, as given to the system by the user at the end of the game.
 		/// </summary>
 		public virtual Entity PlayedObject { get; set; }
+
+		public GameState GameState { get; set; }
 	}
 }

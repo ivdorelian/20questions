@@ -15,6 +15,13 @@ namespace TwentyQuestions.Repositories
 	{
 		private ApplicationDbContext dbContext;
 
+		private IEntityRepository entityRepository;
+		private IGameEntityRepository gameEntityRepository;
+		private IGameRepository gameRepository;
+		private IGameQuestionsRepository gameQuestionsRepository;
+		private IQuestionRepository questionRepository;
+		private IEntityQuestionsRepository entityQuestionsRepository;
+
 		public UnitOfWork()
 		{
 			dbContext = new ApplicationDbContext();
@@ -23,29 +30,81 @@ namespace TwentyQuestions.Repositories
 			{
 				this.dbContext.Database.Log = (message) => { Debug.Write(message); };
 			}
-
-			this.EntityRepository = new EntityRepository(dbContext);
-			this.GameEntityRepository = new GameEntityRepository(dbContext);
-			this.GameRepository = new GameRepository(dbContext);
-			this.GameQuestionsRepository = new GameQuestionsRepository(dbContext);
-			this.QuestionRepository = new QuestionRepository(dbContext);
-			this.EntityQuestionsRepository = new EntityQuestionsRepository(dbContext);
 		}
 
-		public EntityRepository EntityRepository { get; private set; }
-		public GameEntityRepository GameEntityRepository { get; private set; }
-		public GameRepository GameRepository { get; private set; }
-		public GameQuestionsRepository GameQuestionsRepository { get; private set; }
+		public IEntityRepository EntityRepository
+		{
+			get
+			{
+				if (this.entityRepository == null)
+				{
+					this.entityRepository = new EntityRepository(this.dbContext, this);
+				}
 
-		/// <summary>
-		/// Gets the question repository instance.
-		/// </summary>
-		public QuestionRepository QuestionRepository { get; private set; }
+				return this.entityRepository;
+			}
+		}
 
-		/// <summary>
-		/// Gets the entity questions repository instance.
-		/// </summary>
-		public EntityQuestionsRepository EntityQuestionsRepository { get; private set; }
+		public IGameEntityRepository GameEntityRepository
+		{
+			get
+			{
+				if (this.gameEntityRepository == null)
+				{
+					this.gameEntityRepository = new GameEntityRepository(this.dbContext, this);
+				}
+
+				return this.gameEntityRepository;
+			}
+		}
+		public IGameRepository GameRepository
+		{
+			get
+			{
+				if (this.gameRepository == null)
+				{
+					this.gameRepository = new GameRepository(this.dbContext, this);
+				}
+
+				return this.gameRepository;
+			}
+		}
+		public IGameQuestionsRepository GameQuestionsRepository
+		{
+			get
+			{
+				if (this.gameQuestionsRepository == null)
+				{
+					this.gameQuestionsRepository = new GameQuestionsRepository(this.dbContext, this);
+				}
+
+				return this.gameQuestionsRepository;
+			}
+		}
+		public IQuestionRepository QuestionRepository
+		{
+			get
+			{
+				if (this.questionRepository == null)
+				{
+					this.questionRepository = new QuestionRepository(this.dbContext, this);
+				}
+
+				return this.questionRepository;
+			}
+		}
+		public IEntityQuestionsRepository EntityQuestionsRepository
+		{
+			get
+			{
+				if (this.entityQuestionsRepository == null)
+				{
+					this.entityQuestionsRepository = new EntityQuestionsRepository(this.dbContext, this);
+				}
+
+				return this.entityQuestionsRepository;
+			}
+		}
 
 		public async Task SaveAsync()
 		{

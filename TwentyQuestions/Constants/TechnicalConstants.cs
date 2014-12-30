@@ -151,5 +151,10 @@ namespace TwentyQuestions.Constants
 		/// ones maybe should be more fixed.
 		/// </summary>
 		public const int PickAmongstNumber = 3;
+
+		/// <summary>
+		/// Gets the GameIdLength, meaning the length of the string identifiers that uniquely identify games to users.
+		/// </summary>
+		public const int GameIdLength = 10;
 	}
 }

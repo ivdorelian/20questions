@@ -13,10 +13,13 @@ namespace TwentyQuestions.Repositories
 		protected DbContext dbContext;
 		protected DbSet<TModel> dbSet;
 
-		public BaseRepository(DbContext context)
+		protected UnitOfWork unitOfWork;
+
+		public BaseRepository(DbContext context, UnitOfWork unitOfWork)
 		{
-			dbContext = context;
-			dbSet = dbContext.Set<TModel>();
+			this.dbContext = context;
+			this.dbSet = dbContext.Set<TModel>();
+			this.unitOfWork = unitOfWork;
 		}
 
 		public System.Collections.Generic.IEnumerable<TModel> GetAll()

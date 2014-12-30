@@ -24,7 +24,7 @@
 			</div>
 			<div class="navbar-collapse collapse">
 				<ul class="nav navbar-nav">
-					<li style="font-weight: bold" @(this.Model.CurrentPage == TwentyQuestions.Enums.PageType.Game ? "class=active" : string.Empty)>@Html.ActionLink("New game", "Index", "Game")</li>
+					<li style="font-weight: bold" @(this.Model.CurrentPage == TwentyQuestions.Enums.PageType.Game ? "class=active" : string.Empty)>@Html.ActionLink("New game", "NewGame", "Game")</li>
 					<li @(this.Model.CurrentPage == TwentyQuestions.Enums.PageType.Entities ? "class=active" : string.Empty)>@Html.ActionLink("Entities", "Index", "Entities")</li> <!--null, Model.IsInHomePage ? new { selected = "selected" } : null)</li>-->
 					<li @(this.Model.CurrentPage == TwentyQuestions.Enums.PageType.Questions ? "class=active" : string.Empty)>@Html.ActionLink("Questions", "Index", "Questions")</li>
 					<li>@Html.ActionLink("About", "About", "Home")</li>

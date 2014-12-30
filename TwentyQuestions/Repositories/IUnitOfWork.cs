@@ -11,14 +11,12 @@ namespace TwentyQuestions.Repositories
 {
 	public interface IUnitOfWork
 	{
-		EntityRepository EntityRepository { get; }
-		GameEntityRepository GameEntityRepository { get; }
-		GameRepository GameRepository { get; }
-
-		/// <summary>
-		/// Gets the question repository instance.
-		/// </summary>
-		QuestionRepository QuestionRepository { get; }
+		IEntityRepository EntityRepository { get; }
+		IGameEntityRepository GameEntityRepository { get; }
+		IGameRepository GameRepository { get; }
+		IGameQuestionsRepository GameQuestionsRepository { get; }
+		IEntityQuestionsRepository EntityQuestionsRepository { get; }
+		IQuestionRepository QuestionRepository { get; }
 
 		Task SaveAsync();
 	}

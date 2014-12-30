@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -17,7 +18,7 @@ namespace TwentyQuestions.Controllers
 	/// <summary>
 	/// Represents the GameController class.
 	/// </summary>
-	public class GameController : BaseController<ViewModels.Game.GameViewModel>
+	public class GameController : BaseController<ViewModels.Game.GamePlayViewModel>
 	{
 		/// <summary>
 		/// Initializes a new instance of the TwentyQuestions.Controllers.GameController class.
@@ -26,89 +27,104 @@ namespace TwentyQuestions.Controllers
 			: base(PageType.Game)
 		{ }
 
-		public async Task<ActionResult> Index()
-		{
-			using (UnitOfWork unitOfWork = new UnitOfWork())
-			{
-				Stopwatch timer = new Stopwatch();
-				timer.Start();
-				Models.Game game = await unitOfWork.GameEntityRepository.StartNewGameInstanceAsync();
-				this.ViewModel.LoadingTime = timer.ElapsedMilliseconds;
-				timer.Stop();
-
-				if (game != null)
-				{
-					this.ViewModel.IDGame = game.IDGame;
-
-					GameQuestionsJSONModel questions = await unitOfWork.GameQuestionsRepository.GetNextQuestionAsync(this.ViewModel.IDGame);
-
-					if (questions != null)
-					{
-						this.ViewModel.CurrentQuestionIndex = questions.CurrentQuestionIndex;
-						this.ViewModel.CurrentQuestionBody = questions.CurrentQuestion.QuestionBody;
-					}
-
-					return View(this.ViewModel);
-				}
-
-				return this.Redirect("Error");
-			}
-		}
-
-
 		public async Task<ActionResult> NewGame()
 		{
 			using (UnitOfWork unitOfWork = new UnitOfWork())
 			{
-				Models.Game game = await unitOfWork.GameEntityRepository.StartNewGameInstanceAsync();
+				string newGameId = await unitOfWork.GameRepository.StartNewGame();
 
-				if (game != null)
+				while (newGameId == null)
 				{
-					return this.RedirectToRoute("GameRoute", new { id = game.IDGame });
+					newGameId = await unitOfWork.GameRepository.StartNewGame();
 				}
-				else
-				{
-					return this.Redirect("Error");
-				}
+
+				return RedirectToRoute("GameRoute", new { id = newGameId });
 			}
 		}
 
-		public async Task<ActionResult> Tralala(int x, string y)
+		public async Task<ActionResult> Play(string id)
 		{
-			return await this.ControllerActionInvoker(
-				() =>
+			if (id == null || id.Length != TechnicalConstants.GameIdLength)
+			{
+				return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+			}
+
+
+			using (UnitOfWork unitOfWork = new UnitOfWork())
+			{
+				GameState gameState = await unitOfWork.GameRepository.GetGameStateAsync(id);
+
+				if (gameState == GameState.Undefined)
 				{
-					// do something with x and y
-					return new Task<ActionResult>(
-						() =>
+					return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+				}
+
+				switch (gameState)
+				{
+					case GameState.Playing:
+						GamePlayViewModel gamePlayVM = await unitOfWork.GameQuestionsRepository.GetGamePlayVMAsync(id);
+						return View("Play", gamePlayVM);
+					case GameState.LastQuestionAnswered:
+						GuessViewModel firstGuessVM = await unitOfWork.GameRepository.GetGuessVMAsync(id);
+						return View("FirstGuessFeedback", firstGuessVM);
+					case GameState.FirstGuessMarkedCorrect:
+					case GameState.SelectedFromTopGuessesList:
+					case GameState.EnteredWhoItWas:
+						GuessViewModel guessVM = await unitOfWork.GameRepository.GetGuessVMAsync(id);
+						return View("CorrectGuess", guessVM);
+					case GameState.FirstGuessMarkedIncorrect:
+						TopGuessesViewModel topGuessesVM = await unitOfWork.GameEntityRepository.GetTopGuessesVMAsync(id);
+						return View("TopGuesses", topGuessesVM);
+					case GameState.MustEnterWhoItWas:
+						SubmitNewEntityViewModel newEntitySubmissionVM = new SubmitNewEntityViewModel
 						{
-
-
-							return View();
-						});
-				});
+							AccessID = id,
+							SubmittedEntity = new Entity()
+						};
+						return View("SubmitNewEntity", newEntitySubmissionVM);
+					default:
+						return null;
+				}
+			}
 		}
 
-		public async Task<ActionResult> NextQuestion(int idGame)
+		[HttpPost]
+		[ActionName("Play")]
+		public async Task<ActionResult> SubmitNewEntity(SubmitNewEntityViewModel newEntity)
+		{
+			using (UnitOfWork unitOfWork = new UnitOfWork())
+			{
+				GameState gameState = await unitOfWork.GameRepository.GetGameStateAsync(newEntity.AccessID);
+
+				if (gameState != GameState.MustEnterWhoItWas)
+				{
+					return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+				}
+
+				if (ModelState.IsValid)
+				{
+					// add to database and update state
+
+				}
+
+				return RedirectToAction("Play", new { id = newEntity.AccessID });
+			}
+		}
+
+		public async Task<JsonResult> NextQuestion(string gameAccessId)
 		{
 			try
 			{
 				using (UnitOfWork unitOfWork = new UnitOfWork())
 				{
-					GameQuestionsJSONModel questions = await unitOfWork.GameQuestionsRepository.GetNextQuestionAsync(idGame);
-
-					GameQuestionExpectedAnswerJSONModel[] answeredQuestions = await unitOfWork.GameQuestionsRepository.GetQuestionsAnsweredForGameAsync(idGame);
+					GamePlayViewModel gamePlayVM = await unitOfWork.GameQuestionsRepository.GetGamePlayVMAsync(gameAccessId);
 
 					return Json(
 						AjaxActionResult.List(
-							this.RenderPartialView("~/Views/Game/Partial/_AnsweredQuestionTemplate.cshtml", answeredQuestions),
-							questions.CurrentQuestion,
-							new
-							{
-								IsLastQuestion = questions.IsLastQuestion,
-								CurrentQuestionIndex = questions.CurrentQuestionIndex
-							}
-					));
+							this.RenderPartialView("~/Views/Game/PlayPartial/_AnsweredQuestionsPartial.cshtml", gamePlayVM.AnsweredQuestions),
+							gamePlayVM.CurrentQuestion.QuestionBody,
+							gamePlayVM.AnsweredQuestions.Count + 1,
+							gamePlayVM.IsLastQuestion));
 				}
 			}
 			catch (Exception ex)
@@ -117,13 +133,13 @@ namespace TwentyQuestions.Controllers
 			}
 		}
 
-		public async Task<ActionResult> AnswerQuestion(int idGame, int questionIndex, int answer)
+		public async Task<JsonResult> AnswerQuestion(string gameAccessId, int answer)
 		{
 			try
 			{
 				using (UnitOfWork unitOfWork = new UnitOfWork())
 				{
-					await unitOfWork.GameQuestionsRepository.AnswerQuestionAndUpdateInstanceAsync(idGame, questionIndex, (AnswerType)answer);
+					await unitOfWork.GameQuestionsRepository.AnswerQuestionAndUpdateInstanceAsync(gameAccessId, (AnswerType)answer);
 
 					return Json(AjaxActionResult.Json(true));
 				}
@@ -134,59 +150,13 @@ namespace TwentyQuestions.Controllers
 			}
 		}
 
-
-		public async Task<ActionResult> GetGameResult(int idGame, int questionIndex, int answer)
+		public async Task<JsonResult> JudgeFirstGuess(string gameAccessId, bool correctGuess)
 		{
 			try
 			{
 				using (UnitOfWork unitOfWork = new UnitOfWork())
 				{
-					await unitOfWork.GameQuestionsRepository.AnswerQuestionAndUpdateInstanceAsync(idGame, questionIndex, (AnswerType)answer);
-
-					Game gameResult = await unitOfWork.GameRepository.GetGameResult(idGame);
-
-					GameQuestionExpectedAnswerJSONModel[] answeredQuestions = await unitOfWork.GameQuestionsRepository.GetQuestionsAnsweredForGameAsync(idGame);
-
-					return Json(
-						AjaxActionResult.List(
-						this.RenderPartialView("~/Views/Game/Partial/_AnsweredQuestionTemplate.cshtml", answeredQuestions),
-						gameResult));
-				}
-			}
-			catch (Exception ex)
-			{
-				return Json(AjaxActionResult.Fail(-1, "Error processing request!" + System.Environment.NewLine + ex.Message));
-			}
-		}
-
-
-		public async Task<ActionResult> SetCorrectGuess(int idGame, int idGuessedEntity, int attempt = 1)
-		{
-			try
-			{
-				using (UnitOfWork unitOfWork = new UnitOfWork())
-				{
-					await unitOfWork.GameRepository.SetCorrectGuess(idGame, idGuessedEntity, attempt);
-
-					return Json(
-						AjaxActionResult.Json(
-						this.RenderPartialView("~/Views/Game/Partial/_AnsweredQuestionTemplate.cshtml", await unitOfWork.GameRepository.GetExpectedAnswers(idGame, idGuessedEntity))));
-				}
-			}
-			catch (Exception ex)
-			{
-				return Json(AjaxActionResult.Fail(-1, "Error processing request!" + System.Environment.NewLine + ex.Message));
-			}
-		}
-
-
-		public async Task<ActionResult> SetIncorrectGuess(int idGame, int idGuessedEntity, int attempt)
-		{
-			try
-			{
-				using (UnitOfWork unitOfWork = new UnitOfWork())
-				{
-					await unitOfWork.GameRepository.SetIncorrectGuess(idGame, idGuessedEntity, attempt);
+					await unitOfWork.GameRepository.JudgeFirstGuessAsync(gameAccessId, correctGuess);
 
 					return Json(AjaxActionResult.Json(true));
 				}
@@ -197,18 +167,15 @@ namespace TwentyQuestions.Controllers
 			}
 		}
 
-
-		public async Task<ActionResult> GetTopGuesses(int idGame)
+		public async Task<JsonResult> JudgeTopGuess(string gameAccessId, int indexGuess)
 		{
 			try
 			{
 				using (UnitOfWork unitOfWork = new UnitOfWork())
 				{
-					return Json(
-						AjaxActionResult.Json(
-							this.RenderPartialView(
-								"~/Views/Game/Partial/_TopGuessesListTemplate.cshtml",
-								await unitOfWork.GameRepository.GetTopGuesses(idGame))));
+					await unitOfWork.GameRepository.JudgeTopGuessAsync(gameAccessId, indexGuess);
+
+					return Json(AjaxActionResult.Json(true));
 				}
 			}
 			catch (Exception ex)
@@ -234,42 +201,42 @@ namespace TwentyQuestions.Controllers
 			}
 		}
 
-		public async Task<ActionResult> SubmitNewEntity(int idGame, int idEntity, string entityName, string entityDescription)
-		{
-			try
-			{
-				using (UnitOfWork unitOfWork = new UnitOfWork())
-				{
-					Tuple<Entity, bool> entity = await unitOfWork.EntityRepository.SubmitNewEntity(idEntity, entityName, entityDescription);
-					if (entity != null)
-					{
-						await unitOfWork.GameRepository.SetCorrectGuess(idGame, entity.Item1.IDEntity, 3);
+		//public async Task<ActionResult> SubmitNewEntity(int idGame, int idEntity, string entityName, string entityDescription)
+		//{
+		//	try
+		//	{
+		//		using (UnitOfWork unitOfWork = new UnitOfWork())
+		//		{
+		//			Tuple<Entity, bool> entity = await unitOfWork.EntityRepository.SubmitNewEntity(idEntity, entityName, entityDescription);
+		//			if (entity != null)
+		//			{
+		//				await unitOfWork.GameRepository.SetCorrectGuess(idGame, entity.Item1.IDEntity, 3);
 
-						if (idEntity > 0 || entity.Item2)
-						{
-							return Json(
-								AjaxActionResult.List(
-									this.RenderPartialView(
-										"~/Views/Game/Partial/_AnsweredQuestionTemplate.cshtml",
-										await unitOfWork.GameRepository.GetExpectedAnswers(idGame, entity.Item1.IDEntity)),
-									entity.Item1));
-						}
-						else
-						{
-							return Json(AjaxActionResult.Json(true));
-						}
-					}
-					else
-					{
-						return Json(AjaxActionResult.Fail(-1, "Failed to add the new entity!"));
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				return Json(AjaxActionResult.Fail(-1, "Error processing request!" + System.Environment.NewLine + ex.Message));
-			}
-		}
+		//				if (idEntity > 0 || entity.Item2)
+		//				{
+		//					return Json(
+		//						AjaxActionResult.List(
+		//							this.RenderPartialView(
+		//								"~/Views/Game/Partial/_AnsweredQuestionTemplate.cshtml",
+		//								await unitOfWork.GameRepository.GetExpectedAnswers(idGame, entity.Item1.IDEntity)),
+		//							entity.Item1));
+		//				}
+		//				else
+		//				{
+		//					return Json(AjaxActionResult.Json(true));
+		//				}
+		//			}
+		//			else
+		//			{
+		//				return Json(AjaxActionResult.Fail(-1, "Failed to add the new entity!"));
+		//			}
+		//		}
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		return Json(AjaxActionResult.Fail(-1, "Error processing request!" + System.Environment.NewLine + ex.Message));
+		//	}
+		//}
 
 		[OutputCache(Duration = TechnicalConstants.DeleteOldGamesCacheDuration, VaryByParam = "none")]
 		public async Task<ActionResult> DeleteOldGames()

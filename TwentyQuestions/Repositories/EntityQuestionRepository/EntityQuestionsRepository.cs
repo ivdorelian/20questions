@@ -13,7 +13,7 @@ namespace TwentyQuestions.Repositories
 {
 	public class EntityQuestionsRepository : BaseRepository<EntityQuestion>, IEntityQuestionsRepository
 	{
-		public EntityQuestionsRepository(DbContext context) : base(context) { }
+		public EntityQuestionsRepository(DbContext context, UnitOfWork unitOfWork) : base(context, unitOfWork) { }
 
 		public async Task<PagedCollection<EntityQuestion>> GetAllEntitiesForQuestionPaged(int idQuestion, int page) // page numbering starts from 1
 		{

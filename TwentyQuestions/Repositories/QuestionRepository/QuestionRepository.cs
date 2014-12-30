@@ -12,7 +12,7 @@ namespace TwentyQuestions.Repositories
 {
 	public class QuestionRepository : BaseRepository<Question>, IQuestionRepository
 	{
-		public QuestionRepository(DbContext context) : base(context) { }
+		public QuestionRepository(DbContext context, UnitOfWork unitOfWork) : base(context, unitOfWork) { }
 
 		public async Task<Question[]> QuestionsNamedLike(string needle)
 		{

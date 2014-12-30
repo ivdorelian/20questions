@@ -1,0 +1,36 @@
+﻿@model IEnumerable<TwentyQuestions.Models.GameQuestion>
+
+@using TwentyQuestions.Enums
+
+<table class="table table-striped table-hover" style="text-align: left">
+	<thead>
+		<tr>
+			<th class="column1">#</th>
+			<th class="column2">@Html.DisplayNameFor(model => model.Question.QuestionBody)</th>
+			<th class="column3">@Html.DisplayNameFor(model => model.GivenAnswer)</th>
+			<th class="column4">@Html.DisplayNameFor(model => model.ExpectedAnswer)</th>
+		</tr>
+	</thead>
+	<tbody>
+		@if (Model != null)
+		{
+			int i = 1;
+			foreach (var item in Model)
+			{
+				string trClass = item.ExpectedAnswer == item.GivenAnswer ? "success" : "danger";
+				if (item.ExpectedAnswer == AnswerType.Undefined)
+				{
+					trClass = string.Empty;
+				}
+
+				<tr class="@trClass">
+					<td>@i</td>
+					<td>@item.Question.QuestionBody</td>
+					<td>@item.GivenAnswer.ToString()</td>
+					<td>@item.ExpectedAnswerDisplay</td>
+				</tr>
+				++i;
+			}
+		}
+	</tbody>
+</table>

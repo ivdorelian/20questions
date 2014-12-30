@@ -26,6 +26,9 @@ namespace TwentyQuestions.Models
 		/// The name of the entity, as it will appear to the user / player.
 		/// Example: Angela Merkel, Batman, Spiderman.
 		/// </summary>
+		[Required]
+		[MinLength(3)]
+		[MaxLength(32)]
 		public string Name { get; set; }
 
 		/// <summary>

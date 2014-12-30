@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Web;
 using TwentyQuestions.Constants;
@@ -18,7 +19,6 @@ namespace TwentyQuestions.Models
 		/// </summary>
 		[Key]
 		public int IDQuestion { get; set; }
-
 
 		[Required(AllowEmptyStrings = false, ErrorMessage = "Question body is missing!")]
 		[MinLength(TechnicalConstants.MinimumQuestionLength, ErrorMessage = "Question length is too short!")]
@@ -52,6 +52,8 @@ namespace TwentyQuestions.Models
 		/// 
 		/// TODO: maybe this should factor into entity-question association fitnesses somehow?
 		/// </summary>
+		/// 
+		[Index]
 		public int TimesAsked { get; set; }
 	}
 }

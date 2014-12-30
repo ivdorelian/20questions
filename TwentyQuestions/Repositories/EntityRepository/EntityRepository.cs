@@ -16,7 +16,7 @@ namespace TwentyQuestions.Repositories
 		private const int ENTITY_NAME_MIN_LENGTH = 3;
 		private const int ENTITY_NAME_MAX_LENGTH = 32;
 
-		public EntityRepository(DbContext context) : base(context) { }
+		public EntityRepository(DbContext context, UnitOfWork unitOfWork) : base(context, unitOfWork) { }
 
 		public async Task<Entity[]> EntitiesNamedLike(string needle)
 		{

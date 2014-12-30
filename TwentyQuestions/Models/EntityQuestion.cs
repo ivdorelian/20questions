@@ -59,21 +59,29 @@ namespace TwentyQuestions.Models
 		///     increment based on the new values. This will lead to a gain in fitness, but a smaller one, and potentiall a decrease
 		///     in case of 3rd-4th guesses.
 		/// </summary>
+		/// 
+		[Index]
 		public double Fitness { get; set; }
 
 		/// <summary>
 		/// The number of times the answer to this question was Yes for the associated Entity.
 		/// </summary>
+		/// 
+		[Index]
 		public int YesCount { get; set; }
 
 		/// <summary>
 		/// The number of times the answer to this question was No for the associated Entity.
 		/// </summary>
+		/// 
+		[Index]
 		public int NoCount { get; set; }
 
 		/// <summary>
 		/// The number of times the answer to this question was Unknown for the associated Entity.
 		/// </summary>
+		/// 
+		[Index]
 		public int UnknownCount { get; set; }
 
 		/// <summary>

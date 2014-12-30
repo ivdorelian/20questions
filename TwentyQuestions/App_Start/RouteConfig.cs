@@ -23,8 +23,8 @@ namespace TwentyQuestions
 			routes.MapRoute(
 				name: "GameRoute",
 				url: "Game/{id}",
-				defaults: new { controller = "Game", action = "Index" },
-				constraints: new { id = @"\d+" }
+				defaults: new { controller = "Game", action = "Play" },
+				constraints: new { id = @"[a-zA-Z0-9]{10}" }
 			);
 
 			routes.MapRoute(

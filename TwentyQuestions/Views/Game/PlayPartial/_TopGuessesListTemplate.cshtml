@@ -1,0 +1,30 @@
+﻿@model TwentyQuestions.Models.Entity[]
+@using TwentyQuestions.Utils
+
+@if (this.Model != null && this.Model.Length > 0)
+{
+	for (int i = 0; i < this.Model.Length; i++)
+	{
+		<button type="button"
+				class="btn btn-info btn-sm top_guesses_link"
+				data-id="@(this.Model[i].IDEntity)"
+				data-name="@(this.Model[i].Name)"
+				data-index="@(i + 1)"
+				data-description="@(this.Model[i].Description)"
+				data-timesplayed="@(this.Model[i].TimesPlayed)"
+				data-firstplayed="@(this.Model[i].FirstPlayedString)"
+				data-lastplayed="@(this.Model[i].LastPlayedString)">
+
+			<span style="display:block;width:10px;float:left">@string.Format("{0}.", i + 1)</span>
+			<span style="display:block;width:200px;">@this.Model[i].Name</span>
+		</button>
+		<div class="clear"></div>
+	}
+}
+
+<button type="button"
+		class="btn btn-warning btn-sm none_of_top_guesses_link"
+		data-id="@(-1)">
+	<span style="display: block; width: 200px;">No, none of these.</span>
+</button>
+<div class="clear"></div>

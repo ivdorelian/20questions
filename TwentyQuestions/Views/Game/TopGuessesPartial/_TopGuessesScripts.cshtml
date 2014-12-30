@@ -1,0 +1,15 @@
+﻿<script>
+	$(".top_guesses_link").click(function () {
+		var selectedRank = $(this).data("rank");
+
+		$.post(
+			"/Game/JudgeTopGuess",
+			{
+				gameAccessId: $("#idGame").val(),
+				indexGuess: selectedRank
+			},
+			function (data) {
+				location.reload(true);
+			});
+	});
+</script>

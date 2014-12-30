@@ -1,0 +1,30 @@
+﻿@model TwentyQuestions.Models.Game
+
+@using TwentyQuestions.Helpers
+
+<div id="wrapper-response">
+	@if (Model.PlayedRank == TwentyQuestions.Constants.GamePlayConstants.PlayedRankNewEntity)
+	{
+		<h2>I learned something new this game!</h2>
+	}
+	else
+	{
+		<h2>Great, this was my @Html.NumberWithOrderSuffix(Model.PlayedRank.Value) guess!</h2>
+	}
+
+	<p><span id="entity-name">@Model.PlayedObject.Name</span> (@Model.PlayedObject.Description)</p>
+
+	<p>I was <b>@Math.Round(Model.CertaintyPercentage, 2) %</b> certain of @(Model.PlayedRank == 1 ? "this guess." : "my first guess")</p>
+
+	<div class="clear"></div>
+
+	<div id="wrapper-response-entity-picture-progress-bar" class="progress progress-striped active center-block" style="width: 20%;">
+		<div class="progress-bar progress-bar-warning" style="width: 100%"></div>
+	</div>
+
+	<img src="" id="wrapper-response-entity-picture" style="display:none;" />
+
+	<div style="margin-top: 10px;">
+		<button type="button" class="btn btn-success btn-sm" onclick="location.href='/Game/NewGame/'">Play again!</button>
+	</div>
+</div>

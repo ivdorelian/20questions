@@ -1,0 +1,87 @@
+﻿@model TwentyQuestions.ViewModels.Questions.QuestionsViewModel
+@using TwentyQuestions.Models
+
+@section scriptsection {
+	@Scripts.Render("~/pagescripts/QuestionsPage")
+	<script>
+		$(document).ready(function ()
+		{
+			var page = new QuestionsPage();
+			page.initializeControls();
+		});
+	</script>
+}
+
+<style>
+	#divQuestionCollection .column1 {
+		width: 25px;
+	}
+
+	#divQuestionCollection .column2 {
+		width: 57%;
+	}
+
+	#divQuestionCollection .column3 {
+	}
+
+	#divQuestionCollection .column4 {
+	}
+
+	#divQuestionCollection .column5 {
+	}
+
+	#divQuestionCollection .column6 {
+	}
+</style>
+
+<h2>Submit your own question:</h2>
+
+@using (Html.BeginForm("SubmitNewQuestion", "Questions", FormMethod.Post, new { Style = "margin-bottom:10px;" }))
+{
+	<div class="form-group@(!ViewData.ModelState.IsValid ? " has-error" : string.Empty)">
+		@Html.TextBoxFor(
+			m => m.SubmittedQuestion.QuestionBody,
+			new
+			{
+				Class = "form-control",
+				Id = "txtSubmitQuestion",
+				Style = "max-width:none;width:88%;float:left",
+				placeholder = "Enter you question here..."
+			})
+
+		<button type="submit" class="btn btn-primary" style="float:right;padding:6px 28px;">Submit</button>
+
+		<div class="clear"></div>
+	</div>
+	
+	if (ViewData.ModelState.Values != null && ViewData.ModelState.Values.Count > 0)
+	{
+		foreach (ModelState modelState in ViewData.ModelState.Values)
+		{
+			foreach (ModelError error in modelState.Errors)
+			{
+				<div class="alert alert-dismissable alert-danger" style="margin-bottom:5px;">
+					<button type="button" class="close" data-dismiss="alert">×</button>
+					<strong>Oh snap!</strong> @(error.ErrorMessage)
+				</div>
+			}
+		}
+	}
+	
+	if (Model.SuccessfulSubmission)
+	{
+		<div class="alert alert-dismissable alert-success" style="margin-bottom:5px;">
+			<button type="button" class="close" data-dismiss="alert">×</button>
+			<strong>Thanks!</strong> You have added a new question.
+		</div>
+	}
+
+	<div class="clear"></div>
+}
+
+<br />
+<h2>The list of questions known by the system:</h2>
+
+<div id="divQuestionCollection">
+	@Html.Partial("~/Views/Questions/Partial/_QuestionListTemplate.cshtml", this.Model.QuestionCollection)
+</div>

@@ -1,0 +1,44 @@
+﻿@model TwentyQuestions.ViewModels.Entities.EntitiesViewModel
+@using TwentyQuestions.Models
+
+@section scriptsection {
+	@Scripts.Render("~/pagescripts/entity")
+	<script>
+		$(document).ready(function () {
+			var page = new Entity();
+			page.initializeControls();
+		});
+	</script>
+}
+
+<style>
+	#divEntityCollection .column1 {
+		width: 25px;
+	}
+
+	#divEntityCollection .column2 {
+		width: 28%;
+	}
+
+	#divEntityCollection .column3 {
+		width: 30%;
+	}
+
+	#divEntityCollection .column4 {
+	}
+
+	#divEntityCollection .column5 {
+	}
+
+	#divEntityCollection .column6 {
+	}
+
+	#divEntityCollection .column7 {
+	}
+</style>
+
+<h2>The list of entities known by the system:</h2>
+
+<div id="divEntityCollection">
+	@Html.Partial("~/Views/Entities/Partial/_EntityListTemplate.cshtml", this.Model.EntityCollection)
+</div>

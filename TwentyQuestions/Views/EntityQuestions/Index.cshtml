@@ -1,0 +1,31 @@
+﻿@model TwentyQuestions.ViewModels.EntityQuestions.EntityQuestionsViewModel
+
+@section scriptsection {
+	<script src="http://www.google.com/jsapi?key=AIzaSyA5m1Nc8ws2BbmPRwKu5gFradvD_hgq6G0" type="text/javascript"></script>
+	<script type="text/javascript">
+		google.load('search', '1');
+	</script>
+
+	@Scripts.Render("~/pagescripts/entityquestions")
+	<script>
+		$(document).ready(function ()
+		{
+			var page = new EntityQuestions();
+			page.initializeControls();
+		});
+	</script>
+}
+
+<h2>Questions for entity:</h2>
+<h3 id="entityName">@this.Model.EntityName (@this.Model.EntityDescription)</h3>
+
+<div class="center-block" style="border-bottom:10px;">
+	<img src="" id="entity-picture" />
+</div>
+
+
+<br /><h4><b>@this.Model.PageStatistics.AssociatedQuestionsPercentage %</b> of the existing questions are associated with this entity.</h4>
+
+<div id="divEntityQuestionsCollection">
+	@Html.Partial("~/Views/EntityQuestions/Partial/_EntityQuestionsListTemplate.cshtml", this.Model.EntityQuestionCollection)
+</div>

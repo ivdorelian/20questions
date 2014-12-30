@@ -1,0 +1,21 @@
+﻿@model TwentyQuestions.ViewModels.QuestionEntities.QuestionEntitiesViewModel
+
+	@section scriptsection {
+		@Scripts.Render("~/pagescripts/questionentities")
+		<script>
+			$(document).ready(function ()
+			{
+				var page = new QuestionEntities();
+				page.initializeControls();
+			});
+		</script>
+	}
+
+<h2>Entities for question:</h2>
+<h3>@this.Model.QuestionBody</h3><br />
+
+<h4><b>@this.Model.PageStatistics.AssociatedEntitiesPercentage %</b> of the existing entities are associated with this question.</h4>
+
+<div id="divQuestionEntitiesCollection">
+	@Html.Partial("~/Views/QuestionEntities/Partial/_QuestionEntitiesListTemplate.cshtml", this.Model.EntityQuestionCollection)
+</div>

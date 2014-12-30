@@ -1,0 +1,34 @@
+﻿@model TwentyQuestions.ViewModels.Game.GameQuestionExpectedAnswerJSONModel[]
+
+@using TwentyQuestions.Enums
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th class="column1">#</th>
+			<th class="column2">Question</th>
+			<th class="column3">Answer</th>
+			<th class="column4">Expected</th>
+		</tr>
+	</thead>
+	<tbody>
+		@if (this.Model != null && this.Model.Length > 0)
+		{
+			for (int i = 0; i < this.Model.Length; i++)
+			{
+				string trClass = this.Model[i].ExpectedAnswer == this.Model[i].GameQuestion.GivenAnswer ? "success" : "danger";
+				if (this.Model[i].ExpectedAnswer == AnswerType.Undefined)
+				{
+					trClass = string.Empty;
+				}
+
+				<tr class="@trClass">
+					<td class="column1">@(i + 1)</td>
+					<td class="column2">@this.Model[i].GameQuestion.Question.QuestionBody</td>
+					<td class="column3">@this.Model[i].GameQuestion.GivenAnswer.ToString()</td>
+					<td class="column4">@this.Model[i].ExpectedAnswerString</td>
+				</tr>
+			}
+		}
+	</tbody>
+</table>

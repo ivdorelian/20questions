@@ -1,0 +1,18 @@
+﻿@model TwentyQuestions.ViewModels.Home.HomeViewModel
+@{
+	ViewBag.Title = "Home Page";
+}
+
+<div class="home_page">
+	<div class="jumbotron">
+		<div class="newgame">
+			@Html.ActionLink("New game", "Index", "Game")
+		</div>
+		<div class="clear"></div>
+	</div>
+
+	<h4>Recent games</h4>
+	<div id="divRecentGamesCollection">
+		@Html.Partial("~/Views/Home/Partial/_RecentGamesListTemplate.cshtml", this.Model.RecentGames)
+	</div>
+</div>

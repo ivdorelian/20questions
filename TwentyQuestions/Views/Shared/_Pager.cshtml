@@ -1,0 +1,56 @@
+﻿@model TwentyQuestions.ViewModels.SpecializedViews.Pager
+
+<ul class="pagination pagination-sm">
+	@{
+		if (Model.PageIndex <= 1)
+		{
+			<li class="disabled"><a href="#">«</a></li>
+		}
+		else
+		{
+			<li>@Html.ActionLink("«", "Index", new { page = 1 })</li>
+		}
+
+		// first
+		for (int i = 1; i < Math.Min(Model.PageIndex, Model.PagerDetail + 1); ++i)
+		{
+			<li>@Html.ActionLink(i.ToString(), "Index", new { page = i })</li>
+		}
+
+		// before
+		if (Model.PageIndex - Model.PagerDetail > Model.PagerDetail + 1)
+		{
+			<li><a href="#">...</a></li>
+		}
+		for (int i = Math.Max(Model.PagerDetail + 1, Model.PageIndex - Model.PagerDetail); i < Model.PageIndex; ++i)
+		{
+			<li>@Html.ActionLink(i.ToString(), "Index", new { page = i })</li>
+		}
+
+		<li class="active"><a href="#">@Model.PageIndex</a></li>
+
+		for (int i = Model.PageIndex + 1; i <= Math.Min(Model.PageIndex + Model.PagerDetail, Model.PageCount); ++i)
+		{
+			<li>@Html.ActionLink(i.ToString(), "Index", new { page = i })</li>
+		}
+
+		if (Model.PageCount - Model.PagerDetail + 1 > Model.PageIndex + Model.PagerDetail + 1)
+		{
+			<li><a href="#">...</a></li>
+		}
+
+		for (int i = Math.Max(Model.PageIndex + Model.PagerDetail + 1, Model.PageCount - Model.PagerDetail + 1); i <= Model.PageCount; ++i)
+		{
+			<li>@Html.ActionLink(i.ToString(), "Index", new { page = i })</li>
+		}
+
+		if (Model.PageIndex >= Model.PageCount)
+		{
+			<li class="disabled"><a href="#">»</a></li>
+		}
+		else
+		{
+			<li>@Html.ActionLink("»", "Index", new { page = Model.PageCount })</li>
+		}
+	}
+</ul>

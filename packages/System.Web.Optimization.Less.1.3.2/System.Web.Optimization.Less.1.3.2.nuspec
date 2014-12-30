@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>System.Web.Optimization.Less</id>
+    <version>1.3.2</version>
+    <title>dotless adapter for System.Web.Optimization</title>
+    <authors>Scott Xu, Vadim Milichev, Marcus Andersson</authors>
+    <owners>Scott Xu, Vadim Milichev, Marcus Andersson</owners>
+    <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/scott-xu/System.Web.Optimization.Less</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>dotless adapter for system.web.optimization</description>
+    <summary>dotless adapter for system.web.optimization</summary>
+    <releaseNotes>https://github.com/scott-xu/System.Web.Optimization.Less/pull/15</releaseNotes>
+    <tags>less dotless system.web.optimization bundle</tags>
+    <dependencies>
+      <dependency id="dotless" version="1.4.0.0" />
+      <dependency id="Microsoft.AspNet.Web.Optimization" version="1.1.2" />
+    </dependencies>
+  </metadata>
+</package>

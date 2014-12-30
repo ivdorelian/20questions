@@ -1,0 +1,36 @@
+﻿@model TwentyQuestions.Models.Game[]
+
+@using TwentyQuestions.Constants
+
+<table class="table table-striped table-hover" style="margin-bottom:10px;">
+	<thead>
+		<tr>
+			<th class="column1">#</th>
+			<th class="column2" style="width: 36%">You played</th>
+			<th class="column3" style="width: 36%">I guessed</th>
+			<th class="column4">Played rank</th>
+			<th class="column5">Guess certainty %</th>
+		</tr>
+	</thead>
+	<tbody>
+		@if (this.Model != null && this.Model.Length > 0)
+		{
+			for (int i = 0; i < this.Model.Length; i++)
+			{
+				string trClass = Model[i].PlayedObject.IDEntity == Model[i].GuessedObject.IDEntity ? "success" :  "danger";
+				if (Model[i].PlayedRank == GamePlayConstants.PlayedRankNewEntity)
+				{
+					trClass = "info";
+				}
+				<tr class="@trClass">
+					<td>@(i + 1)</td>
+					<td>@Html.ActionLink(this.Model[i].PlayedObject.Name, "Index", "EntityQuestions", new { id = this.Model[i].PlayedObject.IDEntity }, null) (@this.Model[i].PlayedObject.Description)</td>
+					<td>@Html.ActionLink(this.Model[i].GuessedObject.Name, "Index", "EntityQuestions", new { id = this.Model[i].GuessedObject.IDEntity }, null) (@this.Model[i].GuessedObject.Description)</td>
+					<td>@(this.Model[i].PlayedRank == GamePlayConstants.PlayedRankNewEntity ? "New entity" : this.Model[i].PlayedRank.ToString())</td>
+					<td>@Math.Round(this.Model[i].CertaintyPercentage, 2)</td>
+				</tr>
+			}
+		}
+	</tbody>
+</table>
+<div class="clear"></div>

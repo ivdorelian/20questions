@@ -1,0 +1,33 @@
+﻿@model TwentyQuestions.ViewModels.Home.HomeViewModel
+@{
+	ViewBag.Title = "About Open Twenty Questions";
+}
+<h2>@ViewBag.Title</h2>
+
+<p>My basic ideas for this project follow. If anyone is interested, I will share code as well, just contact me. I plan on making it open source eventually, but only once I have done a bit more testing and reworking.</p>
+
+<p>The system consists of the following modules and algorithms:</p>
+<ul>
+	<li>an <b>Entities</b> table that holds the characters and objects played;</li>
+	<li>a <b>Questions</b> table that holds the questions, which are also submitted by users;</li>
+	<li>an <b>EntityQuestions</b> table holds entity-question relations. This holds the number of times each answer was given for each question in relation to each entity (well, those for which the question was asked for anyway). It also has a <b>Fitness</b> field, used for ranking questions from "more general" down to "more specific". This can be thought of the system's knowledge base;</li>
+	<li>a <b>GameEntities</b> table is used for ranking the entities according to the answers given so far for each on-going game. An answer of A to a question Q pushes up all the entities for which the majority answer to question Q is A;</li>
+	<li>the first question asked is picked from those with the highest sum of fitnesses across the <b>EntityQuestions</b> table;</li>
+	<li>each next question is picked from those with the highest fitness associated with the currently top entries in the <b>GameEntities</b> table. Questions for which the expected answer is Yes are favored even before the fitness, because these have more chances of consolidating the current top ranked entity;</li>
+	<li>if the system is quite sure of the answer even before all 20 questions have been asked, it will start asking questions not associated with its answer, so as to learn more about that entity. This is done in a round-robin fashion from the global questions pool right now. <b>Discussion</b>: is round-robin fine, or should it be fully random?</li>
+	<li>early answers are also given under certain conditions and probabilities;</li>
+	<li>answers are given based on the rankings in <b>GameEntities</b>. This allows the system to account for lies as well, because it never eliminates any possibility, just decreases its likeliness of being the answer;</li>
+	<li>after each game, the fitness and answers statistics are updated accordingly: fitness values for entity-question associations decrease if the game was lost, and increase otherwise.</li>
+</ul>
+
+<p>My on and off work on this started with <a style="color: blue; text-decoration: underline" href="http://stackoverflow.com/questions/4915799/designing-a-twenty-questions-algorithm/23967755">this stackoverflow question</a>.</p>
+
+<p>This page is a work in progress. Eventually (hopefully soon), it will contain a full project documentation, together with open comments and source code.</p>
+
+<p>
+	In the meantime, I can provide more details if anyone is interested. My e-mail is:<br />
+	<b>ionescu.vlad1 [at] gmail {dot} com</b> or if your are interested in the UI and functional design you can e-mail to:<br />
+	<b>alx.oancea {at} gmail [dot] com</b>
+</p> 
+	
+<p>I am also open to collaborating on improving the algorithms, implementation, documentation and on moderating the site.</p>

@@ -1,0 +1,221 @@
+﻿body {
+	padding-top: 50px;
+	padding-bottom: 20px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+	max-width: 280px;
+}
+
+/* styles for validation helpers */
+.field-validation-error {
+	color: #b94a48;
+}
+
+.field-validation-valid {
+	display: none;
+}
+
+input.input-validation-error {
+	border: 1px solid #b94a48;
+}
+
+input[type="checkbox"].input-validation-error {
+	border: 0 none;
+}
+
+.validation-summary-errors {
+	color: #b94a48;
+}
+
+.validation-summary-valid {
+	display: none;
+}
+
+
+
+
+
+
+
+
+/*
+=======================================================================
+SITE STYLES
+=======================================================================
+*/
+
+.wrapper
+{
+	width: 1000px;
+	margin: 0 auto;
+	padding: 10px;
+
+	font-size: 16px;
+}
+
+footer
+{
+	height: 100px;
+}
+
+#loading-indicator
+{
+	position:absolute;
+	margin:auto;
+	top:0px;
+	left:0px;
+	width:100%;
+	height:100%;
+	text-align:center;
+	vertical-align:middle;
+	background-color:transparent;
+	z-index:100000;
+
+	display: none;
+}
+
+#loading-indicator img
+{
+	margin-top:20%;
+}
+
+.hide
+{
+	display: none;
+}
+
+.clear
+{
+	clear:both;
+}
+
+/* ====== Grid styles ====== */
+
+.records
+{
+	margin-top: 5px;
+	margin-bottom: 5px;
+	background-color: #fff;
+	border: 1px solid #ddd;
+	font-size: 14px;
+}
+
+.records .record
+{
+	border-bottom: 1px solid #eee;
+	background-color: #fdfdfd;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	padding-left: 10px;
+	padding-right: 5px;
+}
+
+.records .record .colActions
+{
+	text-align: right;
+}
+
+.records .header
+{
+	font-weight: bold;
+	background-color: #e7e7e7;
+	border-bottom: 1px solid #ddd;
+	padding: 10px;
+}
+
+
+.records .par
+{
+	background-color: #fafafa;
+}
+
+
+.records .record:hover
+{
+	background-color: #f6f6f6;
+}
+
+.records .selected
+{
+	background-color: #d3e8f8;
+}
+
+.records .selected:hover
+{
+	background-color: #d3e8f8;
+}
+
+.record input[type="checkbox"]
+{
+	margin-top: 0px;
+}
+
+.record h2,
+.record h3
+{
+	font-weight: bold;
+	font-size: 13px;
+	color: #3f4e5f;
+	padding-bottom: 5px;
+}
+
+.records1column .column
+{
+	float: left;
+}
+
+
+.records2columns .column
+{
+	width: 50%;
+	float: left;
+}
+
+
+.records3columns .column
+{
+	width: 33%;
+	float: left;
+}
+
+.records4columns .column
+{
+	width: 25%;
+	float: left;
+}
+
+.records5columns .column
+{
+	width: 20%;
+	float: left;
+}
+
+.records6columns .column
+{
+	width: 16%;
+	float: left;
+}
+
+.records7columns .column
+{
+	width: 14%;
+	float: left;
+}
+
+/*
+====================================
+		MOCK GAME STYLES
+====================================
+*/
+
+

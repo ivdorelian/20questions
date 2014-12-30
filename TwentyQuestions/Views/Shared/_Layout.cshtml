@@ -1,0 +1,54 @@
+﻿@model TwentyQuestions.ViewModels.LayoutViewModel
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Open 20 Questions</title>
+	@Styles.Render("~/Content/css")
+	@Styles.Render("~/Content/lessfiles")
+
+	@RenderSection("headsection", required: false)
+</head>
+<body>
+	<div class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				@Html.ActionLink("Open 20 Questions", "Index", "Home", null, new { @class = "navbar-brand" })
+			</div>
+			<div class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li style="font-weight: bold" @(this.Model.CurrentPage == TwentyQuestions.Enums.PageType.Game ? "class=active" : string.Empty)>@Html.ActionLink("New game", "Index", "Game")</li>
+					<li @(this.Model.CurrentPage == TwentyQuestions.Enums.PageType.Entities ? "class=active" : string.Empty)>@Html.ActionLink("Entities", "Index", "Entities")</li> <!--null, Model.IsInHomePage ? new { selected = "selected" } : null)</li>-->
+					<li @(this.Model.CurrentPage == TwentyQuestions.Enums.PageType.Questions ? "class=active" : string.Empty)>@Html.ActionLink("Questions", "Index", "Questions")</li>
+					<li>@Html.ActionLink("About", "About", "Home")</li>
+				</ul>
+				@Html.Partial("_LoginPartial")
+			</div>
+		</div>
+	</div>
+	<div class="container body-content wrapper">
+		@RenderBody()
+		<hr />
+		<footer>
+			<p>&copy; @DateTime.Now.Year - Open 20 Questions</p>
+		</footer>
+	</div>
+	@Scripts.Render("~/bundles/modernizr")
+	@Scripts.Render("~/bundles/jquery")
+	@Scripts.Render("~/bundles/jqueryui")
+	@Scripts.Render("~/bundles/bootstrap")
+	@Scripts.Render("~/bundles/plugins")
+	@Scripts.Render("~/bundles/jquerytmpl")
+	@Scripts.Render("~/bundles/mvcwebpage")
+
+	@RenderSection("scriptsection", required: false)
+	@RenderSection("scripts", required: false)
+</body>
+</html>

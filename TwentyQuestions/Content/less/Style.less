@@ -1,0 +1,422 @@
+﻿/*
+====================================
+		GLOBAL STYLES
+====================================
+*/
+
+@global_font_size: 15px;
+
+@wrapper_border: 1px solid #dddddd;
+
+/*
+====================================
+		GLOBAL CLASSES
+====================================
+*/
+
+
+
+/*
+====================================
+		GLOBAL STYLES
+====================================
+*/
+
+.wrapper {
+	border: @wrapper_border;
+
+	a {
+		text-decoration: none;
+		color: black;
+	}
+
+		a:visited {
+			color: black;
+		}
+}
+
+/*
+====================================
+		MENU STYLES
+====================================
+*/
+
+#menu {
+	padding: 5px;
+	margin-bottom: 30px;
+
+	#logo {
+		float: left;
+		font-size: 30px;
+	}
+
+	ul {
+		padding: 0;
+		margin: 0;
+		display: block;
+		float: left;
+		margin-top: 3px;
+		margin-left: 30px;
+
+		li {
+			display: inline-flex;
+			list-style: none;
+			margin-left: 3px;
+
+			a {
+				width: 150px;
+				background-color: #dddddd;
+				text-decoration: none;
+				color: #442918;
+				padding: 6px 12px 6px 12px;
+				line-height: 18px;
+			}
+
+				a:hover {
+					background-color: #ff9900;
+				}
+		}
+	}
+}
+
+
+/*
+====================================
+		HOME PAGE STYLES
+====================================
+*/
+
+.home_page {
+
+
+	.newgame {
+		font-size: 50px;
+		text-align: center;
+	}
+
+	#recent_games {
+		.records {
+			font-size: 15px;
+
+			.header,
+			.record {
+				padding: 5px;
+			}
+
+			@index_width: 4%;
+
+			.column1 {
+				width: @index_width;
+				float: left;
+			}
+
+			.column2 {
+				width: ((100% - @index_width) / 5);
+				float: left;
+			}
+
+			.column3 {
+				width: ((100% - @index_width) / 5);
+				float: left;
+			}
+
+			.column4 {
+				width: ((100% - @index_width) / 5);
+				float: left;
+			}
+
+			.column5 {
+				width: ((100% - @index_width) / 5);
+				float: left;
+			}
+
+			.column6 {
+				width: ((100% - @index_width) / 5);
+				float: left;
+			}
+		}
+	}
+
+	#stats {
+		.records {
+			.header,
+			.record {
+				padding: 0;
+
+				.column1,
+				.column2,
+				.column3,
+				.column4,
+				.column5 {
+					padding: 5px;
+				}
+			}
+
+			.column1 {
+				width: 15%;
+				float: left;
+			}
+
+			.column2 {
+				width: 20%;
+				float: left;
+			}
+
+			.column3 {
+				width: 20%;
+				float: left;
+			}
+
+			.column4 {
+				width: 20%;
+				float: left;
+			}
+
+			.column5 {
+				width: 19.9%;
+				float: left;
+			}
+
+			.record:hover {
+				background-color: #FDFDFD;
+			}
+
+
+			.record {
+				.column1:hover,
+				.column2:hover,
+				.column3:hover,
+				.column4:hover,
+				.column5:hover {
+					background-color: #F6f6f6;
+				}
+			}
+		}
+	}
+}
+
+
+
+
+/*
+====================================
+		MOCK GAME STYLES
+====================================
+*/
+
+.mockgame {
+	border: @wrapper_border;
+	font-size: @global_font_size;
+
+	.current_question_number,
+	.current_question_content,
+	#wrapper-possible-answers {
+		text-align: center;
+	}
+
+		#wrapper-possible-answers a {
+			width: 100px;
+			display: inline-block;
+			background-color: #dddddd;
+			text-decoration: none;
+			color: #442918;
+			padding: 5px;
+		}
+
+			#wrapper-possible-answers a:hover {
+				background-color: #ddddff;
+			}
+
+
+	#gridQuestionList {
+		padding: 30px 150px 5px 150px; /*top-right-bottom-left*/
+		//border: 1px solid #dddddd;
+
+		@padding: 1px;
+
+		.left_side,
+		.right_side {
+			padding: @padding @padding @padding @padding; /*top-right-bottom-left*/
+			width: 49.8%;
+		}
+
+		.left_side {
+			float: left;
+		}
+
+		.right_side {
+			float: right;
+		}
+
+
+		.records {
+			font-size: 15px;
+
+			.header,
+			.record {
+				padding: 5px;
+			}
+
+			@index_width: 4%;
+			@width: 69%;
+
+			.column1 {
+				width: @index_width;
+				float: left;
+			}
+
+			.column2 {
+				width: @width;
+				float: left;
+			}
+
+			.column3 {
+				width: ((100% - @width - @index_width) / 2);
+				float: left;
+			}
+
+			.column4 {
+				width: ((100% - @width - @index_width) / 2);
+				float: left;
+			}
+		}
+	}
+}
+
+
+
+
+/*
+====================================
+		GAME PAGE STYLES
+====================================
+*/
+
+.game_page {
+	font-size: @global_font_size;
+
+	.guessed_object {
+		font-weight: bold;
+		font-size: 20px;
+	}
+
+	.current_question_number {
+		font-weight: bold;
+	}
+
+	.current_question_number,
+	.current_question_content,
+	#wrapper-possible-answers {
+		text-align: center;
+	}
+
+		#wrapper-possible-answers a,
+		#wrapper-response a,
+		#wrapper-top-guesses a,
+		{
+			width: 100px;
+			display: inline-block;
+			background-color: #dddddd;
+			color: #442918;
+			padding: 5px;
+		}
+
+			#wrapper-possible-answers a:hover,
+			#wrapper-response a:hover {
+				background-color: #ddddff;
+			}
+
+	#wrapper-response,
+	#selected-top-guess {
+		text-align: center;
+	}
+
+
+	#wrapper-top-guesses {
+		text-align: center;
+		/*a,
+		{
+			width: 200px;
+			display: inline-block;
+			background-color: #dddddd;
+			color: #442918;
+			padding: 5px;
+			text-align: left;
+		}
+
+			a:hover {
+				background-color: #ddddff;
+			}
+
+		.top_guesses_link {
+			background-color: #FAFAFA;
+		}*/
+		.none_of_top_guesses_link {
+			margin-top: 5px;
+		}
+	}
+
+	#feedback_accepted_answer_machine_message {
+		text-align: center;
+	}
+
+
+
+	#divUserInputAnswer {
+		text-align: center;
+
+		a {
+			width: 100px;
+			display: inline-block;
+			background-color: #dddddd;
+			color: #442918;
+			padding: 5px;
+			margin-top: 5px;
+		}
+	}
+
+	.play_again {
+		color: #442918;
+		text-align: center;
+
+		a {
+			padding: 4px;
+		}
+	}
+
+	#gridQuestionList {
+		padding: 30px 150px 5px 150px; /*top-right-bottom-left*/
+		//border: 1px solid #dddddd;
+		.records {
+			font-size: 15px;
+
+			.header,
+			.record {
+				padding: 5px;
+			}
+
+			@index_width: 4%;
+			@width: 69%;
+
+			.column1 {
+				width: @index_width;
+				float: left;
+			}
+
+			.column2 {
+				width: @width;
+				float: left;
+			}
+
+			.column3 {
+				width: ((100% - @width - @index_width) / 2);
+				float: left;
+			}
+
+			.column4 {
+				width: ((100% - @width - @index_width) / 2);
+				float: left;
+			}
+		}
+	}
+}

@@ -1,0 +1,105 @@
+﻿@model TwentyQuestions.ViewModels.SpecializedViews.PagedListView<TwentyQuestions.Models.EntityQuestion>
+
+@Html.Partial("~/Views/Shared/_Pager.cshtml", this.Model.Pager)
+
+<table class="table table-striped table-hover" style="margin-bottom:10px;">
+	<thead>
+		<tr>
+			<th style="width:5%">#</th>
+			<th style="width: 70%">Question body</th>
+			<th style="width: 15%">Majority answer</th>
+			<th style="width: 10%">Fitness</th>
+		</tr>
+	</thead>
+	<tbody>
+
+		@if (this.Model.Items != null && this.Model.Items.Length > 0)
+		{
+			for (int i = 0; i < this.Model.Items.Length; i++)
+			{
+				<tr>
+					<td>@this.Model.NrCrt(i)</td>
+					<td>
+						@this.Model.Items[i].Question.QuestionBody
+
+						@if (Request.IsAuthenticated)
+						{ 
+							<span data-index="@(this.Model.Items[i].IDEntityQuestion)"
+								  style="float:right;"
+								  class="control-links">
+								<a data-index="@(this.Model.Items[i].IDEntityQuestion)"
+								   href="javascript:void(0);"
+								   class="btn-link change-link-lock"
+								   style="color: @(this.Model.Items[i].Locked ? "blue" : "red");">@(this.Model.Items[i].Locked ? "Unlock" : "Lock")</a>
+								|
+								<a data-index="@(this.Model.Items[i].IDEntityQuestion)"
+								   data-type="yes"
+								   href="javascript:void(0);"
+								   class="btn-link change-link-force"
+								   style="color: red;">Force Yes</a>
+								|
+								<a data-index="@(this.Model.Items[i].IDEntityQuestion)"
+								   data-type="no"
+								   href="javascript:void(0);"
+								   class="btn-link change-link-force"
+								   style="color: red;">Force No</a>
+							</span>
+						}
+					</td>
+					<td>
+						@{
+							int majorityAnswer = NumericUtils.Max(
+								this.Model.Items[i].YesCount,
+								this.Model.Items[i].NoCount,
+								this.Model.Items[i].UnknownCount);
+
+							int total =
+									this.Model.Items[i].YesCount +
+									this.Model.Items[i].NoCount +
+									this.Model.Items[i].UnknownCount;
+
+							TwentyQuestions.Enums.AnswerType answerType = TwentyQuestions.Enums.AnswerType.Undefined;
+
+							if (majorityAnswer == this.Model.Items[i].YesCount)
+							{
+								answerType = TwentyQuestions.Enums.AnswerType.Yes;
+							}
+							else if (majorityAnswer == this.Model.Items[i].NoCount)
+							{
+								answerType = TwentyQuestions.Enums.AnswerType.No;
+							}
+							else if (majorityAnswer == this.Model.Items[i].UnknownCount)
+							{
+								answerType = TwentyQuestions.Enums.AnswerType.Unknown;
+							}
+
+							double yesPercentage = this.Model.Items[i].YesCount * 100.00 / (total == 0 ? 1 : total);
+							double noPercentage = this.Model.Items[i].NoCount * 100.00 / (total == 0 ? 1 : total);
+							double unknownPercentage = this.Model.Items[i].UnknownCount * 100.00 / (total == 0 ? 1 : total);
+						}
+
+						<span title="Yes: @yesPercentage.ToString("F2") %, No: @noPercentage.ToString("F2") %, Unknown: @unknownPercentage.ToString("F2") %">
+							@answerType.ToString()
+							(@((majorityAnswer * 100.0 / (total == 0 ? 1 : total)).ToString("F2")) %)
+						</span>
+					</td>
+
+					<td>
+						@if (Request.IsAuthenticated)
+						{
+							<span class="view-field" data-index="@(this.Model.Items[i].IDEntityQuestion)" title="Click to edit">@this.Model.Items[i].Fitness.ToString("F3")</span>
+							<input type="text" class="edit-field" style="display:none; padding:0px;margin-bottom:-1px; margin-top:-1px;" data-index="@(this.Model.Items[i].IDEntityQuestion)" data-value="@(this.Model.Items[i].Fitness.ToString("F3"))" value="@(this.Model.Items[i].Fitness.ToString("F3"))" title="Press ESC to cancel" />
+						}
+						else
+						{
+							@(this.Model.Items[i].Fitness.ToString("F3"))
+						}
+					</td>
+				</tr>
+			}
+		}
+	</tbody>
+</table>
+<div class="clear"></div>
+
+@Html.Partial("~/Views/Shared/_Pager.cshtml", this.Model.Pager)
